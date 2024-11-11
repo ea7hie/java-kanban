@@ -1,5 +1,3 @@
-import org.w3c.dom.ls.LSOutput;
-
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -10,55 +8,26 @@ public class Main {
         TaskManager taskManager = new TaskManager();
         int idOfNewTask = 1;
 
-        taskManager.saveNewTask(new Task("Накачать пресс", "Чтобы выглядеть идеально",
-                generateNewID(idOfNewTask), Progress.NEW));
-        idOfNewTask++;
-
-        taskManager.saveNewTask(new Task("Накачать пресс", "Чтобы выглядеть идеально",
-                generateNewID(idOfNewTask), Progress.NEW));
-        idOfNewTask++;
-
-        taskManager.saveNewTask(new Task("Спилить ветки", "Осенняя обрезка",
-                generateNewID(idOfNewTask), Progress.NEW));
-        idOfNewTask++;
-
-        ArrayList<Subtask> home = new ArrayList<>();
-        home.add(new Subtask("Накопить денег", Progress.NEW));
-        home.add(new Subtask("Найти агенство", Progress.NEW));
-        home.add(new Subtask("Заплатить агенству", Progress.NEW));
-        home.add(new Subtask("Дождаться окончания стройки", Progress.NEW));
-        home.add(new Subtask("Дождаться окончания ремонта", Progress.NEW));
-        home.add(new Subtask("Переехать в новый готовый дом", Progress.NEW));
-
-        taskManager.saveNewEpic(new Epic("Построить дом", "Жить в замке",
-                generateNewID(idOfNewTask), Progress.NEW, home));
-        idOfNewTask++;
-
-        ArrayList<Subtask> job = new ArrayList<>();
-        job.add(new Subtask("Окончить учёбу", Progress.NEW));
-        taskManager.saveNewEpic(new Epic("Найти работу", "Много зарабатывать",
-                generateNewID(idOfNewTask), Progress.NEW, job));
-        idOfNewTask++;
-
-
         System.out.println("Добро пожаловать в Трекер Задач, в ваш персональный помощник!");
         String typeOfTask;
         while (true) {
             printMenuOfTypes();
 
             do {
-                System.out.println("Введите нужную команду соответствующей цифрой: 1(задача) или 2(эпик).");
+                System.out.println("Введите нужную команду соответствующей цифрой: 0(выход), 1(задача) или 2(эпик).");
                 typeOfTask = scanner.next();
-            } while (!typeOfTask.equals("1") && !typeOfTask.equals("2") && !typeOfTask.equals("4"));////////////////////////////////////////////////////////////////////////////////////////
+            } while (!typeOfTask.equals("1") && !typeOfTask.equals("2") && !typeOfTask.equals("0"));
 
             boolean isTask = typeOfTask.equals("1");
             //isTack = false if typeOfTask.equals("2") -> type is epic!
 
-            printMenuForTask();
-            if (typeOfTask.equals("2")) {////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                printMenuForEpic();
-            } else if (typeOfTask.equals("4")) {/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (typeOfTask.equals("0")) {
                 return;
+            }
+
+            printMenuForTask();
+            if (!isTask) {
+                printMenuForEpic();
             }
 
             String cmd = scanner.next();//выбор пункта меня "что ты хочешь сделать"
@@ -204,6 +173,7 @@ public class Main {
     public static void printMenuForTask() {
         System.out.println();
         System.out.println("Что вы хотите сделать? Введите нужную команду:");
+        System.out.println("0 - выйти из приложения");
         System.out.println("1 - посмотреть список всех задач");
         System.out.println("2 - удалить все задачи");
         System.out.println("3 - найти задачу по её id");
