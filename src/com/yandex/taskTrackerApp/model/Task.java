@@ -1,3 +1,5 @@
+package com.yandex.taskTrackerApp.model;
+
 import java.util.Objects;
 
 public class Task {
@@ -36,10 +38,6 @@ public class Task {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public void setStatus(Progress status) {

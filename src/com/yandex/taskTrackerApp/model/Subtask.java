@@ -1,6 +1,11 @@
+package com.yandex.taskTrackerApp.model;
+
 public class Subtask extends Task {
-    public Subtask(String name, Progress status) {
+    private final int idOfSubtaskEpic;
+
+    public Subtask(String name, Progress status, int idOfSubtaskEpic) {
         super(name, status);
+        this.idOfSubtaskEpic = idOfSubtaskEpic;
     }
 
     @Override

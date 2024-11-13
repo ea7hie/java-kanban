@@ -1,3 +1,9 @@
+import com.yandex.taskTrackerApp.model.Epic;
+import com.yandex.taskTrackerApp.model.Progress;
+import com.yandex.taskTrackerApp.model.Subtask;
+import com.yandex.taskTrackerApp.model.Task;
+import com.yandex.taskTrackerApp.service.TaskManager;
+
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -6,7 +12,38 @@ public class Main {
 
     public static void main(String[] args) {
         TaskManager taskManager = new TaskManager();
+        String[] enumsProgress = {"NEW", "IN_PROGRESS", "DONE"};
         int idOfNewTask = 1;
+
+        taskManager.saveNewTask(new Task("Накачать пресс", "Чтобы выглядеть идеально",
+                generateNewID(idOfNewTask), Progress.NEW));
+        idOfNewTask++;
+
+        taskManager.saveNewTask(new Task("Накачать пресс", "Чтобы выглядеть идеально",
+                generateNewID(idOfNewTask), Progress.NEW));
+        idOfNewTask++;
+
+        taskManager.saveNewTask(new Task("Спилить ветки", "Осенняя обрезка",
+                generateNewID(idOfNewTask), Progress.NEW));
+        idOfNewTask++;
+
+        ArrayList<Subtask> home = new ArrayList<>();
+        home.add(new Subtask("Накопить денег", Progress.NEW, generateNewID(idOfNewTask)));
+        home.add(new Subtask("Найти агенство", Progress.NEW, generateNewID(idOfNewTask)));
+        home.add(new Subtask("Заплатить агенству", Progress.NEW, generateNewID(idOfNewTask)));
+        home.add(new Subtask("Дождаться окончания стройки", Progress.NEW, generateNewID(idOfNewTask)));
+        home.add(new Subtask("Дождаться окончания ремонта", Progress.NEW, generateNewID(idOfNewTask)));
+        home.add(new Subtask("Переехать в новый готовый дом", Progress.NEW, generateNewID(idOfNewTask)));
+        taskManager.saveNewEpic(new Epic("Построить дом", "Жить в замке",
+                generateNewID(idOfNewTask), Progress.NEW, home));
+        idOfNewTask++;
+
+        ArrayList<Subtask> job = new ArrayList<>();
+        job.add(new Subtask("Окончить учёбу", Progress.NEW, generateNewID(idOfNewTask)));
+        taskManager.saveNewEpic(new Epic("Найти работу", "Много зарабатывать",
+                generateNewID(idOfNewTask), Progress.NEW, job));
+        idOfNewTask++;
+
 
         System.out.println("Добро пожаловать в Трекер Задач, в ваш персональный помощник!");
         String typeOfTask;
@@ -40,9 +77,9 @@ public class Main {
             switch (cmd) {
                 case "1":
                     if (isTask) {
-                        taskManager.printAllTasks();
+                        System.out.println(taskManager.printAllTasks());
                     } else {
-                        taskManager.printAllEpics();
+                        System.out.println(taskManager.printAllEpics());
                     }
                     break;
                 case "2":
@@ -65,6 +102,7 @@ public class Main {
                 case "4":
                     name = inputNameOfTask();
                     description = inputDescriptionOfTask();
+                    int idNewEpic =  generateNewID(idOfNewTask);
 
                     if (isTask) {
                         taskManager.saveNewTask(new Task(name, description,
@@ -73,12 +111,12 @@ public class Main {
                         System.out.println("Сколько шагов до вашей цели?");
                         int amountSteps = checkNextInt();
                         for (int i = 1; i <= amountSteps; i++) {
-                            Subtask newSubtask = new Subtask(inputSubtaskOfEpic(), status);
+                            Subtask newSubtask = new Subtask(inputSubtaskOfEpic(), status, idNewEpic);
                             subtasks.add(newSubtask);
                         }
 
                         taskManager.saveNewEpic(new Epic(name, description,
-                                generateNewID(idOfNewTask), status, subtasks));
+                               idNewEpic, status, subtasks));
                     }
                     System.out.println("Успешно сохранено!");
                     idOfNewTask++;
@@ -93,31 +131,77 @@ public class Main {
                     if (isElementDyIdSaved) {
                         printMenuForUpdate();
                         int choosingWhatToUpdate = checkNextInt();
-                        String newValue;
 
                         switch (choosingWhatToUpdate) {
                             case 1:
-                                System.out.println("Введите новое значение.");
-                                newValue = scanner.nextLine();
-                                System.out.println(taskManager.updateName(idForUpdate, newValue, isTask));
+                                if (isTask) {
+                                    taskManager.updateTask(
+                                            new Task(
+                                                    getNewValueForUpdate(),
+                                                    taskManager.getAllTasks().get(idForUpdate).getDescription(),
+                                                    idForUpdate, status
+                                            )
+                                    );
+                                } else {
+                                    taskManager.updateEpic(
+                                            new Epic(
+                                                    getNewValueForUpdate(),
+                                                    taskManager.getAllEpics().get(idForUpdate).getDescription(),
+                                                    idForUpdate, status,
+                                                    taskManager.getAllEpics().get(idForUpdate).getSubtasks()
+                                            )
+                                    );
+                                }
                                 break;
                             case 2:
-                                System.out.println("Введите новое значение.");
-                                newValue = scanner.nextLine();
-                                System.out.println(taskManager.updateDescription(idForUpdate, newValue, isTask));
+                                if (isTask) {
+                                    taskManager.updateTask(
+                                            new Task(
+                                                    taskManager.getAllTasks().get(idForUpdate).getName(),
+                                                    getNewValueForUpdate(), idForUpdate, status
+                                            )
+                                    );
+                                } else {
+                                    taskManager.updateEpic(
+                                            new Epic(
+                                                    taskManager.getAllEpics().get(idForUpdate).getName(),
+                                                    getNewValueForUpdate(), idForUpdate, status,
+                                                    taskManager.getAllEpics().get(idForUpdate).getSubtasks()
+                                            )
+                                    );
+                                }
                                 break;
                             case 3:
                                 printMenuForProgresses();
                                 System.out.println("Введите новое значение.");
-                                int newProgressStatus = checkNextInt();
-                                if (newProgressStatus >= 1 && newProgressStatus <= 3) {
-                                    if(isTask) {
-                                        System.out.println(taskManager.updateProgressTask(idForUpdate,
-                                                newProgressStatus));
+                                int indexOfNewProgSt = checkNextInt();
+
+                                if (indexOfNewProgSt >= 1 && indexOfNewProgSt <= 3) {
+                                    Progress newStatus = Progress.valueOf(enumsProgress[indexOfNewProgSt - 1]);
+                                    if (isTask) {
+                                        taskManager.updateTask(
+                                                new Task(
+                                                        taskManager.getAllTasks().get(idForUpdate).getName(),
+                                                        taskManager.getAllTasks().get(idForUpdate).getDescription(),
+                                                        idForUpdate, newStatus
+                                                )
+                                        );
                                     } else {
                                         System.out.println("Введите номер подзадачи, которую нужно сменить.");
-                                        System.out.println(taskManager.updateProgressSubtaskOfEpic(idForUpdate,
-                                                checkNextInt(), newProgressStatus));
+                                        int index = checkNextInt();
+                                        subtasks =  taskManager.getAllEpics().get(idForUpdate).getSubtasks();
+                                        if (subtasks.size() >= index) {
+                                            subtasks.get(index - 1).setStatus(newStatus);
+                                            Epic newEpic =  new Epic(
+                                                    taskManager.getAllEpics().get(idForUpdate).getName(),
+                                                    taskManager.getAllEpics().get(idForUpdate).getDescription(),
+                                                    idForUpdate, status, subtasks
+                                            );
+                                            newEpic.setStatus(taskManager.checkProgressStatusOfEpic(newEpic));
+                                            taskManager.updateEpic(newEpic);
+                                        } else {
+                                            System.out.println("Ошибка. Подзадачи с этим номером нет.");
+                                        }
                                     }
                                 } else {
                                     System.out.println("Введите число от 1 до 3.");
@@ -130,9 +214,21 @@ public class Main {
                                     System.out.println("Введите номер подзадачи, которую нужно сменить.");
                                     int index = checkNextInt();
                                     System.out.println("Введите новое значение.");
-                                    newValue = scanner.nextLine();
-                                    System.out.println(taskManager.updateNameOfSubtaskOfEpic(idForUpdate, index,
-                                           newValue, Progress.NEW));
+                                    String newValue = scanner.nextLine();
+                                    subtasks =  taskManager.getAllEpics().get(idForUpdate).getSubtasks();
+                                    if (subtasks.size() >= index) {
+                                        subtasks =  taskManager.getAllEpics().get(idForUpdate).getSubtasks();
+                                        subtasks.get(index - 1).setName(newValue);
+                                        taskManager.updateEpic(
+                                                new Epic(
+                                                        taskManager.getAllEpics().get(idForUpdate).getName(),
+                                                        taskManager.getAllEpics().get(idForUpdate).getDescription(),
+                                                        idForUpdate, status, subtasks
+                                                )
+                                        );
+                                    } else {
+                                        System.out.println("Ошибка. Подзадачи с этим номером нет.");
+                                    }
                                 }
                                 break;
                             default:
@@ -140,7 +236,7 @@ public class Main {
                                 break;
                         }
                     } else {
-                        System.out.println("Не найдено такой задачи в вашем списке.");
+                        System.out.println("Не найдено задачи с таким id в вашем списке.");
                     }
                     break;
                 case "6":
@@ -232,5 +328,10 @@ public class Main {
             System.out.println("Введено не число. Повторите ввод.");
             scanner.nextLine();
         }
+    }
+
+    public static String getNewValueForUpdate() {
+        System.out.println("Введите новое значение.");
+        return scanner.nextLine();
     }
 }

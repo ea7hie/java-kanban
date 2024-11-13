@@ -1,13 +1,27 @@
+package com.yandex.taskTrackerApp.service;
+
+import com.yandex.taskTrackerApp.model.Epic;
+import com.yandex.taskTrackerApp.model.Subtask;
+import com.yandex.taskTrackerApp.model.Task;
+import com.yandex.taskTrackerApp.model.Progress;
+
 import java.util.HashMap;
 
 public class TaskManager {
-    HashMap<Integer, Task> allTasks;
-    HashMap<Integer, Epic> allEpics;
-    String[] enumsProgress = {"NEW", "IN_PROGRESS", "DONE"};
+    private final HashMap<Integer, Task> allTasks;
+    private final HashMap<Integer, Epic> allEpics;
 
     public TaskManager() {
         this.allTasks = new HashMap<>();
         this.allEpics = new HashMap<>();
+    }
+
+    public HashMap<Integer, Task> getAllTasks() {
+        return allTasks;
+    }
+
+    public HashMap<Integer, Epic> getAllEpics() {
+        return allEpics;
     }
 
     public void saveNewTask(Task task) {
@@ -18,23 +32,27 @@ public class TaskManager {
         allEpics.put(epic.getId(), epic);
     }
 
-    public void printAllTasks() {
+    public String printAllTasks() {
         if (allTasks.isEmpty()) {
-            System.out.println("Список задач пуст.");
+           return "Список задач пуст.";
         } else {
+            String messageWithAllTasks = "";
             for (Task task : allTasks.values()) {
-                System.out.println(task);
+                messageWithAllTasks = messageWithAllTasks + task.toString();
             }
+            return messageWithAllTasks;
         }
     }
 
-    public void printAllEpics() {
+    public String printAllEpics() {
         if (allEpics.isEmpty()) {
-            System.out.println("Список эпиков пуст.");
+            return "Список задач пуст.";
         } else {
+            String messageWithAllEpics = "";
             for (Epic epic : allEpics.values()) {
-                System.out.println(epic);
+                messageWithAllEpics = messageWithAllEpics + epic.toString();
             }
+            return messageWithAllEpics;
         }
     }
 
@@ -51,10 +69,8 @@ public class TaskManager {
     //отличие от isTaskAddedByID: возращает более точную инфу, почему элемент не найден
     public String findTaskByID(int id) {
         if (!allTasks.isEmpty()) {
-            for (Task task : allTasks.values()) {
-                if (task.getId() == id) {
-                    return task.toString();
-                }
+            if (allTasks.containsKey(id)) {
+                return allTasks.get(id).toString();
             }
             return "Задачи с таким id нет. Проверьте ввод или попробуйте запустить поиск по этому id среди эпиков.";
         }
@@ -63,10 +79,8 @@ public class TaskManager {
 
     public String findEpicByID(int id) {
         if (!allEpics.isEmpty()) {
-            for (Epic epic : allEpics.values()) {
-                if (epic.getId() == id) {
-                    return epic.toString();
-                }
+            if (allEpics.containsKey(id)) {
+                return allEpics.get(id).toString();
             }
             return "Эпика с таким id нет. Проверьте ввод или попробуйте запустить поиск по этому id среди задач.";
         }
@@ -75,56 +89,26 @@ public class TaskManager {
 
     public boolean isTaskAddedByID(int id) {
         if (!allTasks.isEmpty()) {
-            for (Task task : allTasks.values()) {
-                if (task.getId() == id) {
-                    return true;
-                }
-            }
+            return allTasks.containsKey(id);
         }
         return false;
     }
 
     public boolean isEpicAddedByID(int id) {
         if (!allEpics.isEmpty()) {
-            for (Epic epic : allEpics.values()) {
-                if (epic.getId() == id) {
-                    return true;
-                }
-            }
+            return allEpics.containsKey(id);
         }
         return false;
     }
 
-    public String updateName(int id, String newValue, boolean isTask) {
-        if (isTask) {
-            allTasks.get(id).setName(newValue);
-        } else {
-            allEpics.get(id).setName(newValue);
-        }
-        return "Выполнено успешно";
+    public void updateTask(Task task) {
+        allTasks.put(task.getId(), task);
+        System.out.println("Успешно обновлено!");
     }
 
-    public String updateDescription(int id, String description, boolean isTask) {
-        if (isTask) {
-            allTasks.get(id).setDescription(description);
-        } else {
-            allEpics.get(id).setDescription(description);
-        }
-        return "Выполнено успешно";
-    }
-
-    public String updateProgressTask(int id, int indexOfEnum) {
-        allTasks.get(id).setStatus(Progress.valueOf(enumsProgress[indexOfEnum - 1]));
-        return "Выполнено успешно";
-    }
-
-    public String updateProgressSubtaskOfEpic(int id, int index, int indexOfEnum) {
-        return allEpics.get(id).setStatus((index - 1), Progress.valueOf(enumsProgress[indexOfEnum - 1]));
-        //find the epic in HashMap by ID; call its setStatus of subtask(find by index) to an array enumsProgress[] elem
-    }
-
-    public String updateNameOfSubtaskOfEpic(int id, int index, String newValue, Progress status) {
-        return allEpics.get(id).setSubtasks((index - 1), newValue, status);
+    public void updateEpic(Epic epic) {
+        allEpics.put(epic.getId(), epic);
+        System.out.println("Успешно обновлено!");
     }
 
     public String deleteOneElementByID(int idForDelete, boolean isTask) {
@@ -138,5 +122,29 @@ public class TaskManager {
 
     public String showOneEpicByID(int idFotViewEpic) {
         return allEpics.get(idFotViewEpic).showAllSubtasks();
+    }
+
+    public Progress checkProgressStatusOfEpic(Epic epic) {
+        int counter = 0;
+        for (Subtask subtask : epic.getSubtasks()) {
+            if (subtask.getStatus().equals(Progress.NEW)) {
+                counter++;
+            }
+        }
+        if (counter == epic.getSubtasks().size()) {
+            return Progress.NEW;
+        }
+
+        counter = 0;
+        for (Subtask subtask : epic.getSubtasks()) {
+            if (subtask.getStatus().equals(Progress.DONE)) {
+                counter++;
+            }
+        }
+        if (counter == epic.getSubtasks().size()) {
+            return Progress.DONE;
+        }
+
+        return Progress.IN_PROGRESS;
     }
 }
