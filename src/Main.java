@@ -15,36 +15,6 @@ public class Main {
         String[] enumsProgress = {"NEW", "IN_PROGRESS", "DONE"};
         int idOfNewTask = 1;
 
-        taskManager.saveNewTask(new Task("Накачать пресс", "Чтобы выглядеть идеально",
-                generateNewID(idOfNewTask), Progress.NEW));
-        idOfNewTask++;
-
-        taskManager.saveNewTask(new Task("Накачать пресс", "Чтобы выглядеть идеально",
-                generateNewID(idOfNewTask), Progress.NEW));
-        idOfNewTask++;
-
-        taskManager.saveNewTask(new Task("Спилить ветки", "Осенняя обрезка",
-                generateNewID(idOfNewTask), Progress.NEW));
-        idOfNewTask++;
-
-        ArrayList<Subtask> home = new ArrayList<>();
-        home.add(new Subtask("Накопить денег", Progress.NEW, generateNewID(idOfNewTask)));
-        home.add(new Subtask("Найти агенство", Progress.NEW, generateNewID(idOfNewTask)));
-        home.add(new Subtask("Заплатить агенству", Progress.NEW, generateNewID(idOfNewTask)));
-        home.add(new Subtask("Дождаться окончания стройки", Progress.NEW, generateNewID(idOfNewTask)));
-        home.add(new Subtask("Дождаться окончания ремонта", Progress.NEW, generateNewID(idOfNewTask)));
-        home.add(new Subtask("Переехать в новый готовый дом", Progress.NEW, generateNewID(idOfNewTask)));
-        taskManager.saveNewEpic(new Epic("Построить дом", "Жить в замке",
-                generateNewID(idOfNewTask), Progress.NEW, home));
-        idOfNewTask++;
-
-        ArrayList<Subtask> job = new ArrayList<>();
-        job.add(new Subtask("Окончить учёбу", Progress.NEW, generateNewID(idOfNewTask)));
-        taskManager.saveNewEpic(new Epic("Найти работу", "Много зарабатывать",
-                generateNewID(idOfNewTask), Progress.NEW, job));
-        idOfNewTask++;
-
-
         System.out.println("Добро пожаловать в Трекер Задач, в ваш персональный помощник!");
         String typeOfTask;
         while (true) {
