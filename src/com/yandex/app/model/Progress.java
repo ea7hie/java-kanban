@@ -1,4 +1,4 @@
-package com.yandex.taskTrackerApp.model;
+package com.yandex.app.model;
 
 public enum Progress {
     NEW,

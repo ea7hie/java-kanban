@@ -1,4 +1,4 @@
-package com.yandex.taskTrackerApp.model;
+package com.yandex.app.model;
 
 import java.util.Objects;
 
@@ -6,20 +6,19 @@ public class Task {
     private String name;
     private String description;
     private Integer id;
-    private Progress status;
-
-    public Task(String name, String description, int id, Progress status) {
+    private Progress status = Progress.NEW;
+//конструкторы
+    public Task(String name, String description, int id) {
         this.name = name;
         this.description = description;
         this.id = id;
-        this.status = status;
     }
 
-    public Task(String name, Progress status) {
+    public Task(String name, int id) {
         this.name = name;
-        this.status = status;
+        this.id = id;
     }
-
+//геттеры
     public String getName() {
         return name;
     }
@@ -35,7 +34,7 @@ public class Task {
     public Progress getStatus() {
         return status;
     }
-
+//сеттеры
     public void setName(String name) {
         this.name = name;
     }
@@ -44,6 +43,10 @@ public class Task {
         this.status = status;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+//переопределения
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -84,6 +87,6 @@ public class Task {
         return "Задача '" + name + "'" +
                 ", \nописание: '" + description + "'" +
                 ", \nid=" + id +
-                ", \nстатус прогресса: " + status + "\n";
+                ", \nстатус прогресса: " + status + "\n" + "\n";
     }
 }
