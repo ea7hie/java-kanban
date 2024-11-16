@@ -38,10 +38,9 @@ public class Main {
             }
 
             String cmd = scanner.next();//выбор пункта меня "что ты хочешь сделать"
-
             String name;
             String description;
-            ArrayList<Subtask> subtasks = new ArrayList<>();
+            boolean isElementByIdSaved;
 
             switch (cmd) {
                 case "0":
@@ -80,24 +79,22 @@ public class Main {
                     description = inputDescriptionOfTask();
 
                     if (isTask) {
-                        taskManager.saveNewTask(new Task(name, description, taskManager.generateNewID()));
+                        taskManager.saveNewTask(new Task(name, description, taskManager.getIdOfNewTask()));
                     } else {
                         System.out.println("Сколько шагов до вашей цели?");
                         int amountSteps = checkNextInt();
 
-                        int idNewEpic = taskManager.generateNewID();
+                        int idNewEpic = taskManager.getIdOfNewTask();
                         Epic newEpic = new Epic(name, description, idNewEpic);
 
                         for (int i = 1; i <= amountSteps; i++) {
                             Subtask newSubtask = new Subtask(
-                                    inputSubtaskOfEpic(), taskManager.generateNewID(), idNewEpic
+                                    inputSubtaskOfEpic(), taskManager.getIdOfNewTask(), idNewEpic
                             );
-                            subtasks.add(newSubtask);
                             newEpic.saveNewSubtaskIDs(newSubtask.getId());
+                            taskManager.saveNewSubtask(newSubtask);
                         }
-
                         taskManager.saveNewEpic(newEpic);
-                        taskManager.saveNewSubtask(idNewEpic, subtasks);
                     }
                     System.out.println("Успешно сохранено!");
                     break;
@@ -105,7 +102,7 @@ public class Main {
                     System.out.println("Введите id элемента, который хотите изменить");
                     int idForUpdate = checkNextInt();
 
-                    boolean isElementByIdSaved = taskManager.isTaskAddedByID(idForUpdate)
+                    isElementByIdSaved = taskManager.isTaskAddedByID(idForUpdate)
                             || taskManager.isEpicAddedByID(idForUpdate);
 
                     if (isElementByIdSaved) {
@@ -172,7 +169,7 @@ public class Main {
                                         ArrayList<Integer> indexes = epic.getSubtasksIDs();
 
                                         if (indexes.contains(index)) {
-                                            taskManager.findSubtaskByID(index, idForUpdate).setStatus(newStatus);
+                                            taskManager.findSubtaskByID(index).setStatus(newStatus);
 
                                             taskManager.findEpicByID(idForUpdate).setStatus(
                                                     taskManager.checkProgressStatusOfEpic(idForUpdate)
@@ -199,9 +196,9 @@ public class Main {
                                     ArrayList<Integer> indexes = epic.getSubtasksIDs();
 
                                     if (indexes.contains(index)) {
-                                        taskManager.findSubtaskByID(index, idForUpdate).setName(newValue);
+                                        taskManager.updateSubtask(new Subtask(newValue, index, idForUpdate));
                                     } else {
-                                        System.out.println("Ошибка. Подзадачи с этим номером нет.");
+                                        System.out.println("Ошибка. Подзадачи с этим id в этом эпике нет.");
                                     }
                                 }
                                 break;
@@ -215,13 +212,20 @@ public class Main {
                     break;
                 case "6":
                     System.out.println("Введите id элемента, который хотите удалить.");
-                    System.out.println(taskManager.deleteOneElementByID(checkNextInt()));
+                    int idForDelete = checkNextInt();
+                    isElementByIdSaved = taskManager.isTaskAddedByID(idForDelete)
+                            || taskManager.isEpicAddedByID(idForDelete) || taskManager.isSubtaskAddedByID(idForDelete);
+                    if (isElementByIdSaved) {
+                        System.out.println(taskManager.deleteOneElementByID(idForDelete));
+                    } else {
+                        System.out.println("Задачи с таким id нет в вашем списке.");
+                    }
                     break;
                 case "7":
                     System.out.println("Введите id эпика, который хотите посмотреть.");
                     int idForViewEpic = checkNextInt();
                     if (taskManager.isEpicAddedByID(idForViewEpic)) {
-                        System.out.println(taskManager.showOneEpicByID(idForViewEpic));
+                        System.out.println(taskManager.getOneEpicByID(idForViewEpic));
                     } else {
                         System.out.println("Эпика с таким id не найдено.");
                     }

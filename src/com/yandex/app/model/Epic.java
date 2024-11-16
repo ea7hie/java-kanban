@@ -21,16 +21,15 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        String fullDescriptionAboutEpic = "Эпик '" + this.getName() + "'" +
+        String fullDescriptionAboutEpic = "\nЭпик '" + this.getName() + "'" +
                 ", \nописание: '" + this.getDescription() + "'" +
                 ", \nid=" + this.getId() +
                 ", \nстатус прогресса всего эпика: " + this.getStatus() + "\n";
 
         for (int i = 0; i < subtaskIDs.size(); i++) {
             fullDescriptionAboutEpic = fullDescriptionAboutEpic + "Подзадача № " + (i + 1) + ", id=" +
-                     subtaskIDs.get(i).toString() + ", '" + Main.taskManager.findSubtaskByID(subtaskIDs.get(i), getId());
+                     subtaskIDs.get(i).toString() + ", '" + Main.taskManager.findSubtaskByID(subtaskIDs.get(i));
         }
         return fullDescriptionAboutEpic;
     }
 }
-
