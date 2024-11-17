@@ -1,7 +1,7 @@
 package com.yandex.app.model;
 
 public class Subtask extends Task {
-    private final int idOfSubtaskEpic;
+    private int idOfSubtaskEpic;
 
     public Subtask(String name, int id, int idOfSubtaskEpic) {
         super(name, id);
@@ -10,6 +10,10 @@ public class Subtask extends Task {
 
     public int getIdOfSubtaskEpic() {
         return idOfSubtaskEpic;
+    }
+
+    public void setIdOfSubtaskEpic(int idOfSubtaskEpic) {
+        this.idOfSubtaskEpic = idOfSubtaskEpic;
     }
 
     @Override

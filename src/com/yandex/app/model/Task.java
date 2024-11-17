@@ -46,7 +46,12 @@ public class Task {
     public void setDescription(String description) {
         this.description = description;
     }
-//переопределения
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    //переопределения
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
