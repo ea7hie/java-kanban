@@ -7,15 +7,10 @@ public class Task {
     private String description;
     private Integer id;
     private Progress status = Progress.NEW;
-//конструкторы
+
     public Task(String name, String description, int id) {
         this.name = name;
         this.description = description;
-        this.id = id;
-    }
-
-    public Task(String name, int id) {
-        this.name = name;
         this.id = id;
     }
 //геттеры

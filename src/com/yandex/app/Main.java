@@ -40,7 +40,7 @@ public class Main {
             String cmd = scanner.next();//выбор пункта меня "что ты хочешь сделать"
             String name;
             String description;
-            int temporaryID = 1;
+            int temporaryID = -1;
             boolean isElementByIdSaved;
 
             switch (cmd) {
@@ -86,14 +86,14 @@ public class Main {
                         int amountSteps = checkNextInt();
 
                         Epic newEpic = new Epic(name, description, temporaryID);
+                        taskManager.saveNewEpic(newEpic);
                         for (int i = 1; i <= amountSteps; i++) {
                             Subtask newSubtask = new Subtask(
-                                    inputSubtaskOfEpic(), temporaryID, temporaryID
+                                    inputNameSubtaskOfEpic(), inputDescriptionSubtaskOfEpic(),
+                                    temporaryID, newEpic.getId()
                             );
                             taskManager.saveNewSubtask(newSubtask);
-                            newEpic.saveNewSubtaskIDs(newSubtask.getId());
                         }
-                        taskManager.saveNewEpic(newEpic);
                     }
                     System.out.println("Успешно сохранено!");
                     break;
@@ -168,8 +168,13 @@ public class Main {
                                         ArrayList<Integer> indexes = epic.getSubtasksIDs();
 
                                         if (indexes.contains(index)) {
-                                            taskManager.findSubtaskByID(index).setStatus(newStatus);
-                                            taskManager.checkProgressStatusOfEpic(idForUpdate);
+                                            Subtask newSubtask = new Subtask(
+                                                    taskManager.findSubtaskByID(index).getName(),
+                                                    taskManager.findSubtaskByID(index).getDescription(),
+                                                    index, epic.getId()
+                                            );
+                                            newSubtask.setStatus(newStatus);
+                                            taskManager.updateSubtask(newSubtask);
                                         } else {
                                             System.out.println("Ошибка. Подзадачи с этим номером нет.");
                                         }
@@ -185,14 +190,16 @@ public class Main {
                                 } else {
                                     System.out.println("Введите id подзадачи, которую нужно сменить.");
                                     int index = checkNextInt();
-                                    System.out.println("Введите новое значение.");
-                                    String newValue = scanner.nextLine();
+                                    System.out.println("Введите новые значения.");
 
                                     Epic epic = taskManager.findEpicByID(idForUpdate);
                                     ArrayList<Integer> indexes = epic.getSubtasksIDs();
 
                                     if (indexes.contains(index)) {
-                                        taskManager.updateSubtask(new Subtask(newValue, index, idForUpdate));
+                                        taskManager.updateSubtask(new Subtask(
+                                                inputNameSubtaskOfEpic(), inputDescriptionSubtaskOfEpic(),
+                                                index, idForUpdate)
+                                        );
                                     } else {
                                         System.out.println("Ошибка. Подзадачи с этим id в этом эпике нет.");
                                     }
@@ -226,6 +233,7 @@ public class Main {
                             Subtask currentSubtask = subtasksForView.get(i);
                             System.out.println(
                                     "Подзадача №" + (i + 1) + " '" + currentSubtask.getName() + "', "
+                                    + "описание: " + currentSubtask.getDescription() +  ", "
                                     + "id=" + currentSubtask.getId() + ", "
                                     + "статус прогресса: " + currentSubtask.getStatus()
                             );
@@ -315,8 +323,13 @@ public class Main {
         return scanner.nextLine();
     }
 
-    public static String inputSubtaskOfEpic() {
-        System.out.println("Введите новый шаг к вашей цели.");
+    public static String inputNameSubtaskOfEpic() {
+        System.out.println("Введите название нового шага к вашей цели.");
+        return scanner.nextLine();
+    }
+
+    public static String inputDescriptionSubtaskOfEpic() {
+        System.out.println("Введите описание нового шага к вашей цели.");
         return scanner.nextLine();
     }
 

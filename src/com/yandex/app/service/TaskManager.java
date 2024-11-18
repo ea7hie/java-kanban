@@ -33,7 +33,7 @@ public class TaskManager {
     }
 
     private int getIdOfNewTask() {
-        return idOfNewTask++;
+        return ++idOfNewTask;
     }
 
     public ArrayList<Subtask> getAllSubtasksOfEpicById(int idOfEpic) {
@@ -50,8 +50,8 @@ public class TaskManager {
     }
 
     public void removeAllEpics() {
-        removeAllSubtasks();
         allEpics.clear();
+        removeAllSubtasks();
         System.out.println("Список эпиков очищен.");
     }
 
@@ -87,8 +87,10 @@ public class TaskManager {
 
     public void saveNewEpic(Epic epic) {
         epic.setId(getIdOfNewTask());
-        for (int subtaskID : epic.getSubtasksIDs()) {
-            allSubtasks.get(subtaskID).setIdOfSubtaskEpic(epic.getId());
+        if (epic.getSubtasksIDs() != null) {
+            for (int subtaskID : epic.getSubtasksIDs()) {
+                allSubtasks.get(subtaskID).setIdOfSubtaskEpic(epic.getId());
+            }
         }
         allEpics.put(epic.getId(), epic);
     }
@@ -96,6 +98,7 @@ public class TaskManager {
     public void saveNewSubtask(Subtask subtask) {
         subtask.setId(getIdOfNewTask());
         allSubtasks.put(subtask.getId(), subtask);
+        allEpics.get(subtask.getIdOfSubtaskEpic()).saveNewSubtaskIDs(subtask.getId());
         checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
     }
 //найти что-то
@@ -147,12 +150,13 @@ public class TaskManager {
     public void updateSubtask(Subtask subtask) {
         Subtask oldSubtask = allSubtasks.get(subtask.getId());
         oldSubtask.setName(subtask.getName());
+        oldSubtask.setDescription(subtask.getDescription());
         oldSubtask.setStatus(subtask.getStatus());
-
+        checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
         System.out.println("Успешно обновлено!");
     }
 //проверка статуса эпика
-    public void checkProgressStatusOfEpic(int idOfEpic) {
+    private void checkProgressStatusOfEpic(int idOfEpic) {
         int counterOfNEW = 0;
         int counterOfDONE = 0;
 
