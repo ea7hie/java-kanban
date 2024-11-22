@@ -4,7 +4,9 @@ import com.yandex.app.model.Epic;
 import com.yandex.app.model.Progress;
 import com.yandex.app.model.Subtask;
 import com.yandex.app.model.Task;
+import com.yandex.app.service.InMemoryHistoryManager;
 import com.yandex.app.service.InMemoryTaskManager;
+import com.yandex.app.service.Managers;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -12,6 +14,7 @@ import java.util.Scanner;
 public class Main {
     public static Scanner scanner = new Scanner(System.in);
     public static InMemoryTaskManager inMemoryTaskManager = new InMemoryTaskManager();
+    public static InMemoryHistoryManager inMemoryHistoryManager = (InMemoryHistoryManager) Managers.getDefaultHistory();
 
     public static void main(String[] args) {
         String[] enumsProgress = {"NEW", "IN_PROGRESS", "DONE"};
@@ -54,7 +57,7 @@ public class Main {
             }
 
             if (typeOfTask.equals("3")) {
-                System.out.println(inMemoryTaskManager.showListViewedTasks());
+                System.out.println(showListViewedTasks());
                 continue;
             }
 
@@ -84,8 +87,10 @@ public class Main {
                 case "2":
                     if (isTask) {
                         inMemoryTaskManager.removeAllTasks();
+                        inMemoryHistoryManager.removeAllTasksInViewedTasks();
                     } else {
                         inMemoryTaskManager.removeAllEpics();
+                        inMemoryHistoryManager.removeAllEpicsInViewedTasks();
                     }
                     break;
                 case "3":
@@ -97,12 +102,15 @@ public class Main {
                             || inMemoryTaskManager.isSubtaskAddedByID(idForSearch)) {
                         if (isTask) {
                             System.out.println(inMemoryTaskManager.findTaskByID(idForSearch));
+                            inMemoryHistoryManager.add(inMemoryTaskManager.findTaskByID(idForSearch));
+
                         } else if (inMemoryTaskManager.isEpicAddedByID(idForSearch)) {
                             System.out.println(inMemoryTaskManager.findEpicByID(idForSearch));
+                            inMemoryHistoryManager.add(inMemoryTaskManager.findEpicByID(idForSearch));
                         } else {
                             System.out.println(inMemoryTaskManager.findSubtaskByID(idForSearch));
+                            inMemoryHistoryManager.add(inMemoryTaskManager.findSubtaskByID(idForSearch));
                         }
-                        inMemoryTaskManager.addIDOfNewViewedTask(idForSearch);
                     } else {
                         System.out.println("Задачи с таким id нет в вашем списке.");
                     }
@@ -143,38 +151,38 @@ public class Main {
                         switch (choosingWhatToUpdate) {
                             case 1:
                                 if (isTask) {
-                                    inMemoryTaskManager.updateTask(
-                                            new Task(
-                                                    getNewValueForUpdate(),
-                                                    inMemoryTaskManager.findTaskByID(idForUpdate).getDescription(),
-                                                    idForUpdate
-                                            )
+                                    Task newTask = new Task(
+                                            getNewValueForUpdate(),
+                                            inMemoryTaskManager.findTaskByID(idForUpdate).getDescription(),
+                                            idForUpdate
                                     );
+                                    inMemoryTaskManager.updateTask(newTask);
+                                    inMemoryHistoryManager.updateOneElem(newTask);
                                 } else {
-                                    inMemoryTaskManager.updateEpic(
-                                            new Epic(
-                                                    getNewValueForUpdate(),
-                                                    inMemoryTaskManager.findEpicByID(idForUpdate).getDescription(),
-                                                    idForUpdate
-                                            )
+                                    Epic newEpic =  new Epic(
+                                            getNewValueForUpdate(),
+                                            inMemoryTaskManager.findEpicByID(idForUpdate).getDescription(),
+                                            idForUpdate
                                     );
+                                    inMemoryTaskManager.updateEpic(newEpic);
+                                    inMemoryHistoryManager.updateOneElem(newEpic);
                                 }
                                 break;
                             case 2:
                                 if (isTask) {
-                                    inMemoryTaskManager.updateTask(
-                                            new Task(
-                                                    inMemoryTaskManager.findTaskByID(idForUpdate).getName(),
-                                                    getNewValueForUpdate(), idForUpdate
-                                            )
+                                    Task newTask =  new Task(
+                                            inMemoryTaskManager.findTaskByID(idForUpdate).getName(),
+                                            getNewValueForUpdate(), idForUpdate
                                     );
+                                    inMemoryTaskManager.updateTask(newTask);
+                                    inMemoryHistoryManager.updateOneElem(newTask);
                                 } else {
-                                    inMemoryTaskManager.updateEpic(
-                                            new Epic(
-                                                    inMemoryTaskManager.findEpicByID(idForUpdate).getName(),
-                                                    getNewValueForUpdate(), idForUpdate
-                                            )
+                                    Epic newEpic =  new Epic(
+                                            inMemoryTaskManager.findEpicByID(idForUpdate).getName(),
+                                            getNewValueForUpdate(), idForUpdate
                                     );
+                                    inMemoryTaskManager.updateEpic(newEpic);
+                                    inMemoryHistoryManager.updateOneElem(newEpic);
                                 }
                                 break;
                             case 3:
@@ -193,6 +201,7 @@ public class Main {
                                         );
                                         newTask.setStatus(newStatus);
                                         inMemoryTaskManager.updateTask(newTask);
+                                        inMemoryHistoryManager.updateOneElem(newTask);
                                     } else {
                                         System.out.println("Введите id подзадачи, которую нужно сменить.");
                                         int index = checkNextInt();
@@ -207,10 +216,11 @@ public class Main {
                                             );
                                             newSubtask.setStatus(newStatus);
                                             inMemoryTaskManager.updateSubtask(newSubtask);
+                                            inMemoryHistoryManager.updateOneElem(newSubtask);
                                         } else {
                                             System.out.println("Ошибка. Подзадачи с этим номером нет.");
                                         }
-                                        System.out.println("Успешно сохранено!");
+                                        System.out.println("Успешно сохранено!\n");
                                     }
                                 } else {
                                     System.out.println("Введите число от 1 до 3.");
@@ -228,10 +238,11 @@ public class Main {
                                     ArrayList<Integer> indexes = epic.getSubtasksIDs();
 
                                     if (indexes.contains(index)) {
-                                        inMemoryTaskManager.updateSubtask(new Subtask(
-                                                inputNameSubtaskOfEpic(), inputDescriptionSubtaskOfEpic(),
-                                                index, idForUpdate)
+                                        Subtask newSubtask = new Subtask(inputNameSubtaskOfEpic(),
+                                                inputDescriptionSubtaskOfEpic(), index, idForUpdate
                                         );
+                                        inMemoryTaskManager.updateSubtask(newSubtask);
+                                        inMemoryHistoryManager.updateOneElem(newSubtask);
                                     } else {
                                         System.out.println("Ошибка. Подзадачи с этим id в этом эпике нет.");
                                     }
@@ -249,15 +260,17 @@ public class Main {
                     System.out.println("Введите id элемента, который хотите удалить.");
                     int idForDelete = checkNextInt();
                     isElementByIdSaved = inMemoryTaskManager.isTaskAddedByID(idForDelete)
-                            || inMemoryTaskManager.isEpicAddedByID(idForDelete) || inMemoryTaskManager.isSubtaskAddedByID(idForDelete);
+                            || inMemoryTaskManager.isEpicAddedByID(idForDelete)
+                            || inMemoryTaskManager.isSubtaskAddedByID(idForDelete);
                     if (isElementByIdSaved) {
                         System.out.println(inMemoryTaskManager.deleteOneElementByID(idForDelete));
+                        inMemoryHistoryManager.removeOneElem(idForDelete);
                     } else {
                         System.out.println("Задачи с таким id нет в вашем списке.");
                     }
                     break;
                 case "7":
-                    System.out.println(inMemoryTaskManager.showListViewedTasks());
+                    System.out.println(showListViewedTasks());
                     break;
                 case "8":
                     System.out.println("Введите id эпика, который хотите посмотреть.");
@@ -274,7 +287,7 @@ public class Main {
                             );
                         }
                         System.out.println();
-                        inMemoryTaskManager.addIDOfNewViewedTask(idForViewEpic);
+                        inMemoryHistoryManager.add(inMemoryTaskManager.findEpicByID(idForViewEpic));
                     } else {
                         System.out.println("Эпика с таким id не найдено.");
                     }
@@ -328,7 +341,7 @@ public class Main {
 
     public static String printAllTasks() {
         if (inMemoryTaskManager.getAllTasks().isEmpty()) {
-            return "Список задач пуст.";
+            return "Список задач пуст.\n";
         } else {
             String messageWithAllTasks = "";
             for (Task task : inMemoryTaskManager.getAllTasks()) {
@@ -340,7 +353,7 @@ public class Main {
 
     public static String printAllEpics() {
         if (inMemoryTaskManager.getAllEpics().isEmpty()) {
-            return "Список эпиков пуст.";
+            return "Список эпиков пуст.\n";
         } else {
             String messageWithAllEpics = "";
             for (Epic epic : inMemoryTaskManager.getAllEpics()) {
@@ -348,6 +361,20 @@ public class Main {
             }
             return messageWithAllEpics;
         }
+    }
+
+    public static String showListViewedTasks() {
+        ArrayList<Task> viewedTasks = inMemoryHistoryManager.getHistory();
+        if (viewedTasks.isEmpty()) {
+            return "Пока что нет недавно просмотренных задач.\n";
+        }
+
+        String listViewedTasks = "";
+        for (int i = 0; i < viewedTasks.size(); i++) {
+            Task viewedTask = viewedTasks.get(i);
+            listViewedTasks = listViewedTasks + (i + 1) + "-я просмотренная задача: \n" + viewedTask.toString() + "\n";
+        }
+        return listViewedTasks;
     }
 
     public static String inputNameOfTask() {

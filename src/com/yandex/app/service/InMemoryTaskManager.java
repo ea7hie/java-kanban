@@ -6,7 +6,6 @@ import com.yandex.app.model.Task;
 import com.yandex.app.model.Progress;
 import com.yandex.app.service.interfaces.TaskManager;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -14,22 +13,12 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> allTasks;
     private final HashMap<Integer, Epic> allEpics;
     private final HashMap<Integer, Subtask> allSubtasks;
-    private final ArrayList<Integer> idsOfViewedTasks;
     private int idOfNewTask = 0;
 
     public InMemoryTaskManager() {
         this.allTasks = new HashMap<>();
         this.allEpics = new HashMap<>();
         this.allSubtasks = new HashMap<>();
-        this.idsOfViewedTasks = new ArrayList<>();
-        this.idsOfViewedTasks.add(13);
-        this.idsOfViewedTasks.add(4);
-        this.idsOfViewedTasks.add(10);
-        this.idsOfViewedTasks.add(6);
-        this.idsOfViewedTasks.add(1);
-        this.idsOfViewedTasks.add(3);
-        this.idsOfViewedTasks.add(13);
-        this.idsOfViewedTasks.add(8);
     }
 //получить что-то (геттеры)
     @Override
@@ -47,44 +36,8 @@ public class InMemoryTaskManager implements TaskManager {
         return new ArrayList<>(allSubtasks.values());
     }
 
-    @Override
-    public List<Task> getHistory() {
-        if (idsOfViewedTasks.isEmpty()) {
-            return null;
-        }
-        ArrayList<Task> viewedTasks = new ArrayList<>();
-        for (int idViewedTask : idsOfViewedTasks) {
-            if (isTaskAddedByID(idViewedTask)) {
-                viewedTasks.add(allTasks.get(idViewedTask));
-            } else if (isEpicAddedByID(idViewedTask)) {
-                viewedTasks.add(allEpics.get(idViewedTask));
-            } else {
-                viewedTasks.add(allSubtasks.get(idViewedTask));
-            }
-        }
-        return viewedTasks;
-    }
-
-    public String showListViewedTasks() {
-        if (idsOfViewedTasks.isEmpty()) {
-            return "Пока что нет недавно просмотренных задач.";
-        }
-
-        List<Task> viewedTasks = this.getHistory();
-        String listViewedTasks = "";
-        for (int i = 0; i < viewedTasks.size(); i++) {
-            Task viewedTask = viewedTasks.get(i);
-            listViewedTasks = listViewedTasks + (i + 1) + "-я просмотренная задача: \n" + viewedTask.toString() + "\n";
-        }
-        return listViewedTasks;
-    }
-
     private int getIdOfNewTask() {
         return ++idOfNewTask;
-    }
-
-    public ArrayList<Integer> getIdsOfViewedTasks() {
-        return idsOfViewedTasks;
     }
 
     public ArrayList<Subtask> getAllSubtasksOfEpicById(int idOfEpic) {
@@ -199,7 +152,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateTask(Task task) {
         allTasks.put(task.getId(), task);
-        System.out.println("Успешно обновлено!");
+        System.out.println("Успешно обновлено!\n");
     }
 
     @Override
@@ -207,7 +160,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic oldEpic = allEpics.get(epic.getId());
         oldEpic.setName(epic.getName());
         oldEpic.setDescription(epic.getDescription());
-        System.out.println("Успешно обновлено!");
+        System.out.println("Успешно обновлено!\n");
     }
 
     @Override
@@ -217,17 +170,9 @@ public class InMemoryTaskManager implements TaskManager {
         oldSubtask.setDescription(subtask.getDescription());
         oldSubtask.setStatus(subtask.getStatus());
         checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
-        System.out.println("Успешно обновлено!");
+        System.out.println("Успешно обновлено!\n");
     }
 
-    public void addIDOfNewViewedTask(int idOfNewViewedTask) {
-        if (idsOfViewedTasks.size() < 10) {
-            idsOfViewedTasks.add(idOfNewViewedTask);
-        } else {
-            idsOfViewedTasks.removeFirst();
-            idsOfViewedTasks.add(idOfNewViewedTask);
-        }
-    }
 //проверка статуса эпика
     private void checkProgressStatusOfEpic(int idOfEpic) {
         int counterOfNEW = 0;

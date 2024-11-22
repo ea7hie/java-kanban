@@ -5,7 +5,6 @@ import com.yandex.app.model.Subtask;
 import com.yandex.app.model.Task;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public interface TaskManager {
 //получить что-то (геттеры)
@@ -14,8 +13,6 @@ public interface TaskManager {
     ArrayList<Epic> getAllEpics();
 
     ArrayList<Subtask> getAllSubtasks();
-
-    List<Task> getHistory();
 
 //удалить что-то
     void removeAllTasks();

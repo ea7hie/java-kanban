@@ -3,17 +3,17 @@ package com.yandex.app.service;
 import com.yandex.app.model.Epic;
 import com.yandex.app.model.Subtask;
 import com.yandex.app.model.Task;
+import com.yandex.app.service.interfaces.HistoryManager;
 import com.yandex.app.service.interfaces.TaskManager;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class Managers {
+public final class Managers {
     public TaskManager getDefault() {
-        return new TaskManager() {
+        return new InMemoryTaskManager() {
             @Override
             public ArrayList<Task> getAllTasks() {
-                return null;
+               return null;
             }
 
             @Override
@@ -26,12 +26,7 @@ public class Managers {
                 return null;
             }
 
-            @Override
-            public List<Task> getHistory() {
-                return List.of();
-            }
-
-            @Override
+             @Override
             public void removeAllTasks() {
 
             }
@@ -98,5 +93,7 @@ public class Managers {
         };
     }
 
-    //public static
+    public static HistoryManager getDefaultHistory() {
+        return new InMemoryHistoryManager();
+    }
 }
