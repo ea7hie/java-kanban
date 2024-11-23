@@ -16,7 +16,9 @@ public class Epic extends Task {
     }
 
     public void saveNewSubtaskIDs(Integer idOfNewSubtask ) {
-        this.subtaskIDs.add(idOfNewSubtask);
+        if (Main.inMemoryTaskManager.isSubtaskAddedByID(idOfNewSubtask)) {
+            this.subtaskIDs.add(idOfNewSubtask);
+        }
     }
 
     @Override

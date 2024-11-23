@@ -172,7 +172,6 @@ public class InMemoryTaskManager implements TaskManager {
         checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
         System.out.println("Успешно обновлено!\n");
     }
-
 //проверка статуса эпика
     private void checkProgressStatusOfEpic(int idOfEpic) {
         int counterOfNEW = 0;

@@ -41,14 +41,8 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
 
         viewedTasks.removeIf(viewedTask -> viewedTask instanceof Epic);
-
-        for (Task viewedTask : viewedTasks) {
-            if (viewedTask instanceof Subtask) {
-                if (idsAllEpicsInHistory.contains(((Subtask) viewedTask).getIdOfSubtaskEpic())) {
-                    viewedTasks.remove(viewedTask);
-                }
-            }
-        }
+        viewedTasks.removeIf(viewedTask -> (viewedTask instanceof Subtask)
+                && (idsAllEpicsInHistory.contains(((Subtask) viewedTask).getIdOfSubtaskEpic())));
     }
 
     public void removeOneElem(int idForDelete) {
@@ -69,5 +63,9 @@ public class InMemoryHistoryManager implements HistoryManager {
                 return;
             }
         }
+    }
+
+    public void clearListOfViewedTasks() {
+        viewedTasks.clear();
     }
 }
