@@ -3,20 +3,22 @@ package com.yandex.app.model;
 import com.yandex.app.Main;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class Epic extends Task {
-    private final ArrayList<Integer> subtaskIDs = new ArrayList<>();
+    private final List<Integer> subtaskIDs = new ArrayList<>();
 
     public Epic(String name, String description, int id) {
         super(name, description, id);
     }
 
-    public ArrayList<Integer> getSubtasksIDs() {
+    public List<Integer> getSubtasksIDs() {
         return subtaskIDs;
     }
 
-    public void saveNewSubtaskIDs(Integer idOfNewSubtask ) {
-        if (Main.inMemoryTaskManager.isSubtaskAddedByID(idOfNewSubtask)) {
+    public void saveNewSubtaskIDs(Integer idOfNewSubtask, ArrayList<Integer> idsOfAllSubtasks) {
+        if (idsOfAllSubtasks.contains(idOfNewSubtask)) {
             this.subtaskIDs.add(idOfNewSubtask);
         }
     }

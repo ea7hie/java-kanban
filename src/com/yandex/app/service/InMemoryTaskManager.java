@@ -8,6 +8,7 @@ import com.yandex.app.service.interfaces.TaskManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> allTasks;
@@ -34,6 +35,14 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public ArrayList<Subtask> getAllSubtasks() {
         return new ArrayList<>(allSubtasks.values());
+    }
+
+    public ArrayList<Integer> getIdsOfAllSubtasks() {
+        ArrayList<Integer> idsOfAllSubtasks = new ArrayList<>();
+        for (Subtask subtask : getAllSubtasks()) {
+            idsOfAllSubtasks.add(subtask.getId());
+        }
+        return idsOfAllSubtasks;
     }
 
     private int getIdOfNewTask() {
@@ -71,20 +80,26 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public String deleteOneElementByID(int idForDelete) {
-        if (allTasks.containsKey(idForDelete)) {
-            allTasks.remove(idForDelete);
-        } else if (allEpics.containsKey(idForDelete)) {
-            for (int index  : allEpics.get(idForDelete).getSubtasksIDs()) {
-                allSubtasks.remove(index);
-            }
-            allEpics.remove(idForDelete);
-        } else {
-            int idOfEpic = allSubtasks.get(idForDelete).getIdOfSubtaskEpic();
-            allEpics.get(idOfEpic).getSubtasksIDs().remove(Integer.valueOf(idForDelete));
-            allSubtasks.remove(idForDelete);
-            checkProgressStatusOfEpic(idOfEpic);
+    public String deleteOneTaskByID(int idForDelete) {
+        allTasks.remove(idForDelete);
+        return "Выполнено успешно";
+    }
+
+    @Override
+    public String deleteOneEpicByID(int idForDelete) {
+        for (int index  : allEpics.get(idForDelete).getSubtasksIDs()) {
+            allSubtasks.remove(index);
         }
+        allEpics.remove(idForDelete);
+        return "Выполнено успешно";
+    }
+
+    @Override
+    public String deleteOneSubtaskaskByID(int idForDelete){
+        int idOfEpic = allSubtasks.get(idForDelete).getIdOfSubtaskEpic();
+        allEpics.get(idOfEpic).getSubtasksIDs().remove(Integer.valueOf(idForDelete));
+        allSubtasks.remove(idForDelete);
+        checkProgressStatusOfEpic(idOfEpic);
         return "Выполнено успешно";
     }
 //сохранить что-то
@@ -109,7 +124,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void saveNewSubtask(Subtask subtask) {
         subtask.setId(getIdOfNewTask());
         allSubtasks.put(subtask.getId(), subtask);
-        allEpics.get(subtask.getIdOfSubtaskEpic()).saveNewSubtaskIDs(subtask.getId());
+        allEpics.get(subtask.getIdOfSubtaskEpic()).saveNewSubtaskIDs(subtask.getId(), getIdsOfAllSubtasks());
         checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
     }
 //найти что-то

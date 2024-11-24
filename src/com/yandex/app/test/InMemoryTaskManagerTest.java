@@ -67,13 +67,20 @@ class InMemoryTaskManagerTest {
     //объект Epic нельзя добавить в самого себя в виде подзадачи
     @Test
     void shouldNotAdd() {
-        // я обновила метод добавления id подзадач в классе Epic: теперь можно добавить только существующие подзадачи
-        // => никакой другой эпик, в т.ч. и данный не получится добавить.
-        // Верно ли такое решение? или нужно что-то посложнее придумать?
         Epic checkedEpic = inMemoryTaskManager.findEpicByID(4);
-        ArrayList<Integer> correctIds = checkedEpic.getSubtasksIDs();
-        checkedEpic.saveNewSubtaskIDs(4);
-        ArrayList<Integer> checkedIds = checkedEpic.getSubtasksIDs();
+        ArrayList<Integer> idsBeforeAttemptingSave= (ArrayList<Integer>) checkedEpic.getSubtasksIDs();
+
+        //выяснилось, что в пред.версии оба списка ссылались на один и тот же объект,
+        //и проверка всегда давала положительный результат, так как изменения в одном списке отображались и в другом
+        // потому сейчас создаётся новый независимый от других список
+        ArrayList<Integer> correctIds = new ArrayList<>(idsBeforeAttemptingSave);
+
+        int someId = 100500;
+        checkedEpic.saveNewSubtaskIDs(someId, inMemoryTaskManager.getIdsOfAllSubtasks());
+
+        ArrayList<Integer> checkedIds = (ArrayList<Integer>) checkedEpic.getSubtasksIDs();
+        System.out.println(correctIds);
+        System.out.println(checkedIds);
         assertArrayEquals(new ArrayList[]{correctIds}, new ArrayList[]{checkedIds});
     }
 

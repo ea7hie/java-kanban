@@ -1,5 +1,6 @@
 package com.yandex.app.service;
 
+import com.yandex.app.Main;
 import com.yandex.app.model.Epic;
 import com.yandex.app.model.Subtask;
 import com.yandex.app.model.Task;
@@ -12,7 +13,7 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void add(Task task) {
-        if (viewedTasks.size() >= 10) {
+        if (viewedTasks.size() >= sizeOfList) {
             viewedTasks.removeFirst();
         }
         viewedTasks.add(task);
@@ -24,25 +25,12 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     public void removeAllTasksInViewedTasks() {
-        //если это не эпик и не подзадача, то это задача - надо удалить
         viewedTasks.removeIf(viewedTask -> !(viewedTask instanceof Subtask || viewedTask instanceof Epic));
     }
 
     public void removeAllEpicsInViewedTasks() {
-        //Нужно перед удалением запомнить id всех эпиков, чтобы потом удалить из истории все их подзадачи
-        //*мысли вслух* если объединить обе проверки, то мб такое, что сначала проверится и пройдет дальше подзадача,
-        //а её эпик удалиться позже при следующих итерациях. Потому дважды надо пройтись по списку
-
-        ArrayList<Integer> idsAllEpicsInHistory = new ArrayList<>();
-        for (Task viewedTask : viewedTasks) {
-            if (viewedTask instanceof Epic) {
-                idsAllEpicsInHistory.add(viewedTask.getId());
-            }
-        }
-
         viewedTasks.removeIf(viewedTask -> viewedTask instanceof Epic);
-        viewedTasks.removeIf(viewedTask -> (viewedTask instanceof Subtask)
-                && (idsAllEpicsInHistory.contains(((Subtask) viewedTask).getIdOfSubtaskEpic())));
+        viewedTasks.removeIf(viewedTask -> viewedTask instanceof Subtask);
     }
 
     public void removeOneElem(int idForDelete) {

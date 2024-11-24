@@ -111,10 +111,9 @@ class InMemoryHistoryManagerTest {
         inMemoryHistoryManager.removeAllEpicsInViewedTasks();
 
         idsViewedTasksInTest.remove(1);
+        idsViewedTasksInTest.remove(1);
         idsViewedTasksInTest.add(task2);
         idsViewedTasksInTest.add(task3);
-        idsViewedTasksInTest.add(subtask11);
-        idsViewedTasksInTest.add(subtask12);
 
         ArrayList<Task> checkedList = inMemoryHistoryManager.getHistory();
         assertArrayEquals(new ArrayList[]{idsViewedTasksInTest}, new ArrayList[]{checkedList});

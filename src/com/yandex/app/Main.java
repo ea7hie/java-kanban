@@ -9,6 +9,7 @@ import com.yandex.app.service.InMemoryTaskManager;
 import com.yandex.app.service.Managers;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -67,11 +68,11 @@ public class Main {
                     break;
                 case "2":
                     if (isTask) {
-                        inMemoryTaskManager.removeAllTasks();
                         inMemoryHistoryManager.removeAllTasksInViewedTasks();
+                        inMemoryTaskManager.removeAllTasks();
                     } else {
-                        inMemoryTaskManager.removeAllEpics();
                         inMemoryHistoryManager.removeAllEpicsInViewedTasks();
+                        inMemoryTaskManager.removeAllEpics();
                     }
                     break;
                 case "3":
@@ -187,7 +188,7 @@ public class Main {
                                         System.out.println("Введите id подзадачи, которую нужно сменить.");
                                         int index = checkNextInt();
                                         Epic epic = inMemoryTaskManager.findEpicByID(idForUpdate);
-                                        ArrayList<Integer> indexes = epic.getSubtasksIDs();
+                                        List<Integer> indexes = epic.getSubtasksIDs();
 
                                         if (indexes.contains(index)) {
                                             Subtask newSubtask = new Subtask(
@@ -216,7 +217,7 @@ public class Main {
                                     System.out.println("Введите новые значения.");
 
                                     Epic epic = inMemoryTaskManager.findEpicByID(idForUpdate);
-                                    ArrayList<Integer> indexes = epic.getSubtasksIDs();
+                                    List<Integer> indexes = epic.getSubtasksIDs();
 
                                     if (indexes.contains(index)) {
                                         Subtask newSubtask = new Subtask(inputNameSubtaskOfEpic(),
@@ -240,11 +241,14 @@ public class Main {
                 case "6":
                     System.out.println("Введите id элемента, который хотите удалить.");
                     int idForDelete = checkNextInt();
-                    isElementByIdSaved = inMemoryTaskManager.isTaskAddedByID(idForDelete)
-                            || inMemoryTaskManager.isEpicAddedByID(idForDelete)
-                            || inMemoryTaskManager.isSubtaskAddedByID(idForDelete);
-                    if (isElementByIdSaved) {
-                        System.out.println(inMemoryTaskManager.deleteOneElementByID(idForDelete));
+                    if (inMemoryTaskManager.isTaskAddedByID(idForDelete)) {
+                        System.out.println(inMemoryTaskManager.deleteOneTaskByID(idForDelete));
+                        inMemoryHistoryManager.removeOneElem(idForDelete);
+                    } else if (inMemoryTaskManager.isEpicAddedByID(idForDelete)) {
+                        System.out.println(inMemoryTaskManager.deleteOneEpicByID(idForDelete));
+                        inMemoryHistoryManager.removeOneElem(idForDelete);
+                    } else if (inMemoryTaskManager.isSubtaskAddedByID(idForDelete)) {
+                        System.out.println(inMemoryTaskManager.deleteOneSubtaskaskByID(idForDelete));
                         inMemoryHistoryManager.removeOneElem(idForDelete);
                     } else {
                         System.out.println("Задачи с таким id нет в вашем списке.");

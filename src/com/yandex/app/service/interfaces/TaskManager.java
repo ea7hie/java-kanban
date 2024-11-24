@@ -21,7 +21,11 @@ public interface TaskManager {
 
     void removeAllSubtasks();
 
-    String deleteOneElementByID(int idForDelete);
+    String deleteOneTaskByID(int idForDelete);
+
+    String deleteOneEpicByID(int idForDelete);
+
+    String deleteOneSubtaskaskByID(int idForDelete);
 
 //сохранить что-то
     void saveNewTask(Task task);
