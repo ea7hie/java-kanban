@@ -7,7 +7,5 @@ import java.util.ArrayList;
 public interface HistoryManager {
     int sizeOfList = 10;
 
-    void add(Task task);
-
     ArrayList<Task> getHistory();
 }

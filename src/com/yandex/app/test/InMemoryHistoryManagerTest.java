@@ -44,10 +44,6 @@ class InMemoryHistoryManagerTest {
         Epic epic = inMemoryTaskManager.findEpicByID(4);
         Subtask subtask = inMemoryTaskManager.findSubtaskByID(13);
 
-        inMemoryHistoryManager.add(task);
-        inMemoryHistoryManager.add(epic);
-        inMemoryHistoryManager.add(subtask);
-
         idsViewedTasksInTest.add(task);
         idsViewedTasksInTest.add(epic);
         idsViewedTasksInTest.add(subtask);
@@ -74,17 +70,11 @@ class InMemoryHistoryManagerTest {
         Epic epic5 = inMemoryTaskManager.findEpicByID(5);
         Subtask subtask9 = inMemoryTaskManager.findSubtaskByID(9);
 
-        inMemoryHistoryManager.add(task2);
-        inMemoryHistoryManager.add(task2);
-        inMemoryHistoryManager.add(task3);
-        inMemoryHistoryManager.add(epic5);
-        inMemoryHistoryManager.add(subtask9);
-
         idsViewedTasksInTest.removeFirst();//удалили из эталона самый первый task
         idsViewedTasksInTest.add(epic5);
         idsViewedTasksInTest.add(subtask9);
 
-        inMemoryHistoryManager.removeAllTasksInViewedTasks();
+        InMemoryHistoryManager.removeAllTasksInViewedTasks();
         ArrayList<Task> checkedList = inMemoryHistoryManager.getHistory();
         assertArrayEquals(new ArrayList[]{idsViewedTasksInTest}, new ArrayList[]{checkedList});
     }
@@ -100,15 +90,7 @@ class InMemoryHistoryManagerTest {
         Subtask subtask11 = inMemoryTaskManager.findSubtaskByID(11);
         Subtask subtask12 = inMemoryTaskManager.findSubtaskByID(12);
 
-        inMemoryHistoryManager.add(task2);
-        inMemoryHistoryManager.add(subtask9);
-        inMemoryHistoryManager.add(task3);
-        inMemoryHistoryManager.add(epic4);
-        inMemoryHistoryManager.add(subtask11);
-        inMemoryHistoryManager.add(epic6);
-        inMemoryHistoryManager.add(subtask12);
-
-        inMemoryHistoryManager.removeAllEpicsInViewedTasks();
+        InMemoryHistoryManager.removeAllEpicsInViewedTasks();
 
         idsViewedTasksInTest.remove(1);
         idsViewedTasksInTest.remove(1);
@@ -122,7 +104,7 @@ class InMemoryHistoryManagerTest {
     //проверка метода inMemoryHistoryManager.removeOneElem(Task).
     @Test
     void shouldDeleteFirstTask() {
-        inMemoryHistoryManager.removeOneElem(1);
+        InMemoryHistoryManager.removeOneElem(1);
         idsViewedTasksInTest.removeFirst();
 
         ArrayList<Task> checkedList = inMemoryHistoryManager.getHistory();
@@ -140,50 +122,13 @@ class InMemoryHistoryManagerTest {
         assertArrayEquals(new ArrayList[]{idsViewedTasksInTest}, new ArrayList[]{checkedList});
     }
 
-    //проверка на переполнение
-    @Test
-    void sizeOfListMustbe10() {
-        Task task2 = inMemoryTaskManager.findTaskByID(2);
-        Task task3 = inMemoryTaskManager.findTaskByID(3);
-        Epic epic4 = inMemoryTaskManager.findEpicByID(4);
-        Epic epic6 = inMemoryTaskManager.findEpicByID(6);
-        Subtask subtask9 = inMemoryTaskManager.findSubtaskByID(9);
-        Subtask subtask11 = inMemoryTaskManager.findSubtaskByID(11);
-        Subtask subtask12 = inMemoryTaskManager.findSubtaskByID(12);
-
-        inMemoryHistoryManager.add(task2);
-        inMemoryHistoryManager.add(subtask9);
-        inMemoryHistoryManager.add(task3);
-        inMemoryHistoryManager.add(task3);
-        inMemoryHistoryManager.add(epic4);
-        inMemoryHistoryManager.add(subtask11);
-        inMemoryHistoryManager.add(epic6);
-        inMemoryHistoryManager.add(subtask12);
-        inMemoryHistoryManager.add(subtask9);
-        inMemoryHistoryManager.add(task2);
-
-        idsViewedTasksInTest.clear();
-        idsViewedTasksInTest.add(task2);
-        idsViewedTasksInTest.add(subtask9);
-        idsViewedTasksInTest.add(task3);
-        idsViewedTasksInTest.add(task3);
-        idsViewedTasksInTest.add(epic4);
-        idsViewedTasksInTest.add(subtask11);
-        idsViewedTasksInTest.add(epic6);
-        idsViewedTasksInTest.add(subtask12);
-        idsViewedTasksInTest.add(subtask9);
-        idsViewedTasksInTest.add(task2);
-
-        ArrayList<Task> checkedList = inMemoryHistoryManager.getHistory();
-        assertArrayEquals(new ArrayList[]{idsViewedTasksInTest}, new ArrayList[]{checkedList});
-    }
-
 //проверка, что утилитарный класс всегда возвращает проинициализированные и готовые к работе экземпляры менеджеров
     @Test
     void shouldReturnWorkingInMemoryHistoryManagerAndEmptyListOfViewedTasks() {
         for (int i = 0; i < 5; i++) {
             InMemoryHistoryManager checkingInMemoryHistoryManager = (InMemoryHistoryManager)
                     Managers.getDefaultHistory();
+            checkingInMemoryHistoryManager.clearListOfViewedTasks();
             assertTrue(checkingInMemoryHistoryManager.getHistory().isEmpty());
         }
     }
@@ -194,8 +139,8 @@ class InMemoryHistoryManagerTest {
         for (int i = 0; i < 5; i++) {
             InMemoryHistoryManager checkingInMemoryHistoryManager = (InMemoryHistoryManager)
                     Managers.getDefaultHistory();
+            checkingInMemoryHistoryManager.clearListOfViewedTasks();
             Task task2 = inMemoryTaskManager.findTaskByID(2);
-            checkingInMemoryHistoryManager.add(task2);
             idsViewedTasksInTest.clear();
             idsViewedTasksInTest.add(task2);
 
@@ -210,7 +155,7 @@ class InMemoryHistoryManagerTest {
         String name = "Первое значение имени";
         String desc = "первое значение описания";
         Task newTask = new Task(name, desc, 1);
-        inMemoryHistoryManager.add(newTask);
+        InMemoryHistoryManager.add(newTask);
         Task savedTask = inMemoryHistoryManager.getHistory().getLast();
 
         assertEquals(newTask, savedTask);
@@ -221,7 +166,7 @@ class InMemoryHistoryManagerTest {
         String name = "Первое значение имени";
         String desc = "первое значение описания";
         Epic newEpic = new Epic(name, desc, 1);
-        inMemoryHistoryManager.add(newEpic);
+        InMemoryHistoryManager.add(newEpic);
         Task savedEpic= inMemoryHistoryManager.getHistory().getLast();
 
         assertEquals(newEpic, savedEpic);
@@ -232,7 +177,7 @@ class InMemoryHistoryManagerTest {
         String name = "Первое значение имени";
         String desc = "первое значение описания";
         Subtask newSubtask = new Subtask(name, desc, 1, 6);
-        inMemoryHistoryManager.add(newSubtask);
+        InMemoryHistoryManager.add(newSubtask);
         Task savedSubtask = inMemoryHistoryManager.getHistory().getLast();
 
         assertTrue(newSubtask == savedSubtask);

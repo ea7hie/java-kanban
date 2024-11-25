@@ -8,7 +8,6 @@ import com.yandex.app.service.interfaces.TaskManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 
 public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> allTasks;
@@ -54,12 +53,14 @@ public class InMemoryTaskManager implements TaskManager {
         for (int subtaskID : allEpics.get(idOfEpic).getSubtasksIDs()) {
             allSubtasksInEpic.add(allSubtasks.get(subtaskID));
         }
+        InMemoryHistoryManager.add(allEpics.get(idOfEpic));
         return allSubtasksInEpic;
     }
 //удалить что-то
     @Override
     public void removeAllTasks() {
         allTasks.clear();
+        InMemoryHistoryManager.removeAllTasksInViewedTasks();
         System.out.println("Список задач очищен.");
     }
 
@@ -67,6 +68,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void removeAllEpics() {
         allEpics.clear();
         removeAllSubtasks();
+        InMemoryHistoryManager.removeAllEpicsInViewedTasks();
         System.out.println("Список эпиков очищен.");
     }
 
@@ -82,6 +84,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public String deleteOneTaskByID(int idForDelete) {
         allTasks.remove(idForDelete);
+        InMemoryHistoryManager.removeOneElem(idForDelete);
         return "Выполнено успешно";
     }
 
@@ -124,22 +127,26 @@ public class InMemoryTaskManager implements TaskManager {
     public void saveNewSubtask(Subtask subtask) {
         subtask.setId(getIdOfNewTask());
         allSubtasks.put(subtask.getId(), subtask);
-        allEpics.get(subtask.getIdOfSubtaskEpic()).saveNewSubtaskIDs(subtask.getId(), getIdsOfAllSubtasks());
+        allEpics.get(subtask.getIdOfSubtaskEpic()).saveNewSubtaskIDs(subtask.getId());
+        allEpics.get(subtask.getIdOfSubtaskEpic()).addNewSubtaskInallSubtasksOfEpic(subtask);
         checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
     }
 //найти что-то
     @Override
     public Task findTaskByID(int idForSearch) {
+        InMemoryHistoryManager.add(allTasks.get(idForSearch));
         return allTasks.get(idForSearch);
     }
 
     @Override
     public Epic findEpicByID(int idForSearch) {
+        InMemoryHistoryManager.add(allEpics.get(idForSearch));
         return allEpics.get(idForSearch);
     }
 
     @Override
     public Subtask findSubtaskByID(int idSubtask) {
+        InMemoryHistoryManager.add(allSubtasks.get(idSubtask));
        return allSubtasks.get(idSubtask);
     }
 

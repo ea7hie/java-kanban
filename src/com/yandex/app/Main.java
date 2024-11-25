@@ -84,14 +84,10 @@ public class Main {
                             || inMemoryTaskManager.isSubtaskAddedByID(idForSearch)) {
                         if (isTask) {
                             System.out.println(inMemoryTaskManager.findTaskByID(idForSearch));
-                            inMemoryHistoryManager.add(inMemoryTaskManager.findTaskByID(idForSearch));
-
                         } else if (inMemoryTaskManager.isEpicAddedByID(idForSearch)) {
                             System.out.println(inMemoryTaskManager.findEpicByID(idForSearch));
-                            inMemoryHistoryManager.add(inMemoryTaskManager.findEpicByID(idForSearch));
                         } else {
                             System.out.println(inMemoryTaskManager.findSubtaskByID(idForSearch));
-                            inMemoryHistoryManager.add(inMemoryTaskManager.findSubtaskByID(idForSearch));
                         }
                     } else {
                         System.out.println("Задачи с таким id нет в вашем списке.");
@@ -264,15 +260,10 @@ public class Main {
                         ArrayList<Subtask> subtasksForView = inMemoryTaskManager.getAllSubtasksOfEpicById(idForViewEpic);
                         for (int i = 0; i < subtasksForView.size(); i++) {
                             Subtask currentSubtask = subtasksForView.get(i);
-                            System.out.println(
-                                    "Подзадача №" + (i + 1) + " '" + currentSubtask.getName() + "', "
-                                    + "описание: " + currentSubtask.getDescription() +  ", "
-                                    + "id=" + currentSubtask.getId() + ", "
-                                    + "статус прогресса: " + currentSubtask.getStatus()
-                            );
+                            System.out.println("Подзадача №" + (i + 1));
+                            System.out.println(currentSubtask);
                         }
                         System.out.println();
-                        inMemoryHistoryManager.add(inMemoryTaskManager.findEpicByID(idForViewEpic));
                     } else {
                         System.out.println("Эпика с таким id не найдено.");
                     }

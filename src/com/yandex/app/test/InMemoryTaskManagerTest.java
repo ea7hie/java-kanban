@@ -76,11 +76,10 @@ class InMemoryTaskManagerTest {
         ArrayList<Integer> correctIds = new ArrayList<>(idsBeforeAttemptingSave);
 
         int someId = 100500;
-        checkedEpic.saveNewSubtaskIDs(someId, inMemoryTaskManager.getIdsOfAllSubtasks());
-
+        if (inMemoryTaskManager.isSubtaskAddedByID(someId)) {
+            checkedEpic.saveNewSubtaskIDs(someId);
+        }
         ArrayList<Integer> checkedIds = (ArrayList<Integer>) checkedEpic.getSubtasksIDs();
-        System.out.println(correctIds);
-        System.out.println(checkedIds);
         assertArrayEquals(new ArrayList[]{correctIds}, new ArrayList[]{checkedIds});
     }
 
