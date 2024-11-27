@@ -8,10 +8,11 @@ import com.yandex.app.service.interfaces.HistoryManager;
 import java.util.ArrayList;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private static final ArrayList<Task> viewedTasks = new ArrayList<>();
+    private final ArrayList<Task> viewedTasks = new ArrayList<>();
 
-    public static void add(Task task) {
-        if (viewedTasks.size() >= sizeOfList) {
+    @Override
+    public void add(Task task) {
+        if (viewedTasks.size() >= 10) {
             viewedTasks.removeFirst();
         }
         viewedTasks.add(task);
@@ -22,20 +23,19 @@ public class InMemoryHistoryManager implements HistoryManager {
         return viewedTasks;
     }
 
-    public static void removeAllTasksInViewedTasks() {
+    public void removeAllTasksInViewedTasks() {
         viewedTasks.removeIf(viewedTask -> !(viewedTask instanceof Subtask || viewedTask instanceof Epic));
     }
 
-    public static void removeAllEpicsInViewedTasks() {
+    public void removeAllEpicsInViewedTasks() {
         viewedTasks.removeIf(viewedTask -> viewedTask instanceof Epic);
         viewedTasks.removeIf(viewedTask -> viewedTask instanceof Subtask);
     }
 
-    public static void removeOneElem(int idForDelete) {
+    public void removeOneElem(int idForDelete) {
         for (Task viewedTask : viewedTasks) {
             if (viewedTask.getId() == idForDelete) {
                 viewedTasks.remove(viewedTask);
-                return;
             }
         }
     }
@@ -46,7 +46,6 @@ public class InMemoryHistoryManager implements HistoryManager {
                 viewedTask.setName(task.getName());
                 viewedTask.setDescription(task.getDescription());
                 viewedTask.setStatus(task.getStatus());
-                return;
             }
         }
     }

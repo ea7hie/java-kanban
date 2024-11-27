@@ -68,18 +68,14 @@ class InMemoryTaskManagerTest {
     @Test
     void shouldNotAdd() {
         Epic checkedEpic = inMemoryTaskManager.findEpicByID(4);
-        ArrayList<Integer> idsBeforeAttemptingSave= (ArrayList<Integer>) checkedEpic.getSubtasksIDs();
-
-        //выяснилось, что в пред.версии оба списка ссылались на один и тот же объект,
-        //и проверка всегда давала положительный результат, так как изменения в одном списке отображались и в другом
-        // потому сейчас создаётся новый независимый от других список
+        ArrayList<Integer> idsBeforeAttemptingSave= checkedEpic.getSubtasksIDs();
         ArrayList<Integer> correctIds = new ArrayList<>(idsBeforeAttemptingSave);
 
         int someId = 100500;
         if (inMemoryTaskManager.isSubtaskAddedByID(someId)) {
             checkedEpic.saveNewSubtaskIDs(someId);
         }
-        ArrayList<Integer> checkedIds = (ArrayList<Integer>) checkedEpic.getSubtasksIDs();
+        ArrayList<Integer> checkedIds = checkedEpic.getSubtasksIDs();
         assertArrayEquals(new ArrayList[]{correctIds}, new ArrayList[]{checkedIds});
     }
 

@@ -15,7 +15,9 @@ public class Subtask extends Task {
     }
 
     public void setIdOfSubtaskEpic(int idOfSubtaskEpic) {
-        this.idOfSubtaskEpic = idOfSubtaskEpic;
+        if (Main.inMemoryTaskManager.isEpicAddedByID(idOfSubtaskEpic)) {
+            this.idOfSubtaskEpic = idOfSubtaskEpic;
+        }
     }
 
     @Override

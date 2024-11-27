@@ -13,7 +13,8 @@ public class Task {
         this.description = description;
         this.id = id;
     }
-//геттеры
+
+    //геттеры
     public String getName() {
         return name;
     }
@@ -29,7 +30,8 @@ public class Task {
     public Progress getStatus() {
         return status;
     }
-//сеттеры
+
+    //сеттеры
     public void setName(String name) {
         this.name = name;
     }
