@@ -230,17 +230,18 @@ public class Main {
                     }
                     break;
                 case "6":
-                    System.out.println("Введите id элемента, который хотите удалить.");
-                    int idForDelete = checkNextInt();
-                    isElementByIdSaved = inMemoryTaskManager.isTaskAddedByID(idForDelete)
-                            || inMemoryTaskManager.isEpicAddedByID(idForDelete)
-                            || inMemoryTaskManager.isSubtaskAddedByID(idForDelete);
-                    if (isElementByIdSaved) {
-                        System.out.println(inMemoryTaskManager.deleteOneElementByID(idForDelete));
-                    } else {
-                        System.out.println("Задачи с таким id нет в вашем списке.");
-                    }
-                    break;
+                System.out.println("Введите id элемента, который хотите удалить.");
+                int idForDelete = checkNextInt();
+                if (inMemoryTaskManager.isTaskAddedByID(idForDelete)) {
+                    System.out.println(inMemoryTaskManager.deleteOneTaskByID(idForDelete));
+                } else if (inMemoryTaskManager.isEpicAddedByID(idForDelete)) {
+                    System.out.println(inMemoryTaskManager.deleteOneEpicByID(idForDelete));
+                } else if (inMemoryTaskManager.isSubtaskAddedByID(idForDelete)) {
+                    System.out.println(inMemoryTaskManager.deleteOneSubtaskskByID(idForDelete));
+                } else {
+                    System.out.println("Задачи с таким id нет в вашем списке.");
+                }
+                break;
                 case "7":
                     System.out.println(inMemoryTaskManager.showListViewedTasks());
                     break;

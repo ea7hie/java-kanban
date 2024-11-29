@@ -125,6 +125,31 @@ public class InMemoryTaskManager implements TaskManager {
         return "Выполнено успешно";
     }
 
+    @Override
+    public String deleteOneTaskByID(int idForDelete) {
+        allTasks.remove(idForDelete);
+        inMemoryHistoryManager.removeOneElem(idForDelete);
+        return "Выполнено успешно";
+    }
+
+    @Override
+    public String deleteOneEpicByID(int idForDelete) {
+        for (int index  : allEpics.get(idForDelete).getSubtasksIDs()) {
+            allSubtasks.remove(index);
+        }
+        allEpics.remove(idForDelete);
+        return "Выполнено успешно";
+    }
+
+    @Override
+    public String deleteOneSubtaskskByID(int idForDelete){
+        int idOfEpic = allSubtasks.get(idForDelete).getIdOfSubtaskEpic();
+        allEpics.get(idOfEpic).getSubtasksIDs().remove(Integer.valueOf(idForDelete));
+        allSubtasks.remove(idForDelete);
+        checkProgressStatusOfEpic(idOfEpic);
+        return "Выполнено успешно";
+    }
+
     //сохранить что-то
     @Override
     public void saveNewTask(Task task) {

@@ -23,6 +23,12 @@ public interface TaskManager {
 
     String deleteOneElementByID(int idForDelete);
 
+    String deleteOneTaskByID(int idForDelete);
+
+    String deleteOneEpicByID(int idForDelete);
+
+    String deleteOneSubtaskskByID(int idForDelete);
+
 //сохранить что-то
     void saveNewTask(Task task);
 
