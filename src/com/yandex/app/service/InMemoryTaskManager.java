@@ -108,16 +108,18 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public String deleteOneTaskByID(int idForDelete) {
-        allTasks.remove(idForDelete);
         inMemoryHistoryManager.removeOneElem(idForDelete);
+        allTasks.remove(idForDelete);
         return printMessageAboutSuccessfulFinishingOperation();
     }
 
     @Override
     public String deleteOneEpicByID(int idForDelete) {
         for (int index : allEpics.get(idForDelete).getSubtasksIDs()) {
+            inMemoryHistoryManager.removeOneElem(index);
             allSubtasks.remove(index);
         }
+        inMemoryHistoryManager.removeOneElem(idForDelete);
         allEpics.remove(idForDelete);
         return printMessageAboutSuccessfulFinishingOperation();
     }
@@ -125,6 +127,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public String deleteOneSubtaskskByID(int idForDelete) {
         int idOfEpic = allSubtasks.get(idForDelete).getIdOfSubtaskEpic();
+        inMemoryHistoryManager.removeOneElem(idForDelete);
         allEpics.get(idOfEpic).getSubtasksIDs().remove(Integer.valueOf(idForDelete));
         allSubtasks.remove(idForDelete);
         checkProgressStatusOfEpic(idOfEpic);
