@@ -17,6 +17,28 @@ public class Main {
     public static void main(String[] args) {
         String[] enumsProgress = {"NEW", "IN_PROGRESS", "DONE"};
 
+        inMemoryTaskManager.saveNewTask(new Task("!!!1", "desc 1", 1));
+        inMemoryTaskManager.saveNewTask(new Task("!!!2", "desc 2", 1));
+        inMemoryTaskManager.saveNewTask(new Task("!!!3", "desc 3", 1));
+
+        inMemoryTaskManager.saveNewEpic(new Epic("???1", "DESC 1", 1));
+        inMemoryTaskManager.saveNewEpic(new Epic("???2", "DESC 2", 1));
+        inMemoryTaskManager.saveNewEpic(new Epic("???3", "DESC 3", 1));
+
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---1", "Desc---4", 1, 4));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---2", "Desc---4", 1, 4));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---3", "Desc---4", 1, 4));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---4", "Desc---4", 1, 4));
+
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---1", "Desc---5", 1, 5));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---2", "Desc---5", 1, 5));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---3", "Desc---5", 1, 5));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---4", "Desc---5", 1, 5));
+
+        Task task1 = inMemoryTaskManager.findTaskByID(1);
+        Epic epic4 = inMemoryTaskManager.findEpicByID(4);
+        Subtask subtask13 = inMemoryTaskManager.findSubtaskByID(13);
+
         System.out.println("Добро пожаловать в Трекер Задач, в ваш персональный помощник!\n");
         String typeOfTask;
         while (true) {
@@ -285,7 +307,7 @@ public class Main {
         System.out.println("4 - добавить новую задачу");
         System.out.println("5 - изменить задачу по её id");
         System.out.println("6 - удалить задачу по её id");
-        System.out.println("7 - посмотреть список последних 10 просмотренных задач");
+        System.out.println("7 - посмотреть список просмотренных задач");
     }
 
     public static void printMenuForEpic() {
