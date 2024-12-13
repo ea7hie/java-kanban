@@ -17,6 +17,28 @@ public class Main {
     public static void main(String[] args) {
         String[] enumsProgress = {"NEW", "IN_PROGRESS", "DONE"};
 
+        inMemoryTaskManager.saveNewTask(new Task("!!!1", "desc 1", 1));
+        inMemoryTaskManager.saveNewTask(new Task("!!!2", "desc 2", 1));
+        inMemoryTaskManager.saveNewTask(new Task("!!!3", "desc 3", 1));
+
+        inMemoryTaskManager.saveNewEpic(new Epic("???1", "DESC 1", 1));
+        inMemoryTaskManager.saveNewEpic(new Epic("???2", "DESC 2", 1));
+        inMemoryTaskManager.saveNewEpic(new Epic("???3", "DESC 3", 1));
+
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---1", "Desc---4", 1, 4));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---2", "Desc---4", 1, 4));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---3", "Desc---4", 1, 4));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---4", "Desc---4", 1, 4));
+
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---1", "Desc---5", 1, 5));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---2", "Desc---5", 1, 5));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---3", "Desc---5", 1, 5));
+        inMemoryTaskManager.saveNewSubtask(new Subtask("---4", "Desc---5", 1, 5));
+
+        Task task1 = inMemoryTaskManager.findTaskByID(1);
+        Epic epic4 = inMemoryTaskManager.findEpicByID(4);
+        Subtask subtask13 = inMemoryTaskManager.findSubtaskByID(13);
+
         System.out.println("Добро пожаловать в Трекер Задач, в ваш персональный помощник!\n");
         String typeOfTask;
         while (true) {
@@ -88,7 +110,7 @@ public class Main {
                             System.out.println("Не найдено, введён неверный формат.\n");
                         }
                     } else {
-                        System.out.println("Задачи с таким id нет в вашем списке.");
+                        System.out.println("Задачи с таким id нет в вашем списке.\n");
                     }
                     break;
                 case "4":
@@ -111,7 +133,7 @@ public class Main {
                             inMemoryTaskManager.saveNewSubtask(newSubtask);
                         }
                     }
-                    System.out.println("Успешно сохранено!");
+                    System.out.println("Успешно сохранено!\n");
                     break;
                 case "5":
                     System.out.println("Введите id элемента, который хотите изменить");
@@ -192,19 +214,19 @@ public class Main {
                                             newSubtask.setStatus(newStatus);
                                             System.out.println(inMemoryTaskManager.updateSubtask(newSubtask));
                                         } else {
-                                            System.out.println("Ошибка. Подзадачи с этим номером нет.");
+                                            System.out.println("Ошибка. Подзадачи с этим номером нет.\n");
                                         }
                                         System.out.println("Успешно сохранено!\n");
                                     } else {
                                         System.out.println("Не найдено, введён неверный формат.\n");
                                     }
                                 } else {
-                                    System.out.println("Введите число от 1 до 3.");
+                                    System.out.println("Введите число от 1 до 3.\n");
                                 }
                                 break;
                             case 4:
                                 if (isTask) {
-                                    System.out.println("Данная команда предназначена только для эпиков.");
+                                    System.out.println("Данная команда предназначена только для эпиков.\n");
                                 } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
                                     System.out.println("Введите id подзадачи, которую нужно сменить.");
                                     int index = checkNextInt();
@@ -219,18 +241,18 @@ public class Main {
                                         );
                                         System.out.println(inMemoryTaskManager.updateSubtask(newSubtask));
                                     } else {
-                                        System.out.println("Ошибка. Подзадачи с этим id в этом эпике нет.");
+                                        System.out.println("Ошибка. Подзадачи с этим id в этом эпике нет.\n");
                                     }
                                 } else {
                                     System.out.println("Не найдено, введён неверный формат.\n");
                                 }
                                 break;
                             default:
-                                System.out.println("Такой команды нет.");
+                                System.out.println("Такой команды нет.\n");
                                 break;
                         }
                     } else {
-                        System.out.println("Не найдено задачи с таким id в вашем списке.");
+                        System.out.println("Не найдено задачи с таким id в вашем списке.\n");
                     }
                     break;
                 case "6":
@@ -243,7 +265,7 @@ public class Main {
                     } else if (inMemoryTaskManager.isSubtaskAddedByID(idForDelete)) {
                         System.out.println(inMemoryTaskManager.deleteOneSubtaskskByID(idForDelete));
                     } else {
-                        System.out.println("Задачи с таким id нет в вашем списке.");
+                        System.out.println("Задачи с таким id нет в вашем списке.\n");
                     }
                     break;
                 case "7":
@@ -257,11 +279,11 @@ public class Main {
                         System.out.println(inMemoryTaskManager.getFullDescOfAllSubtasksOfEpicById(idForViewEpic));
                         System.out.println();
                     } else {
-                        System.out.println("Эпика с таким id не найдено.");
+                        System.out.println("Эпика с таким id не найдено.\n");
                     }
                     break;
                 default:
-                    System.out.println("А такой команды у нас ещё нет.");
+                    System.out.println("А такой команды у нас ещё нет.\n");
                     break;
             }
         }
@@ -362,7 +384,7 @@ public class Main {
                 scanner.nextLine();
                 return number;
             }
-            System.out.println("Введено не число. Повторите ввод.");
+            System.out.println("Введено не число. Повторите ввод.\n");
             scanner.nextLine();
         }
     }

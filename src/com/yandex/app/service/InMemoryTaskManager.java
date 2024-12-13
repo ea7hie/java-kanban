@@ -57,7 +57,7 @@ public class InMemoryTaskManager implements TaskManager {
             Subtask currentSubtask = allSubtasksInEpic.get(i);
             fullDescription = fullDescription + "Подзадача №" + (i + 1) + currentSubtask.toString();
         }
-        return fullDescription;
+        return fullDescription + "\n";
     }
 
     public String showListViewedTasks() {
@@ -69,12 +69,14 @@ public class InMemoryTaskManager implements TaskManager {
         String listViewedTasks = "";
         for (int i = 0; i < viewedTasks.size(); i++) {
             Task viewedTask = viewedTasks.get(i);
-            listViewedTasks = listViewedTasks + (i + 1) + "-я просмотренная задача: \n" + viewedTask.toString() + "\n";
+            listViewedTasks = listViewedTasks + (i + 1) + "-я просмотренная задача: \n" + viewedTask.toString();
             if (viewedTask instanceof Epic) {
                 listViewedTasks = listViewedTasks + this.getFullDescOfAllSubtasksOfEpicById(viewedTask.getId());
+            } else if (viewedTask instanceof Subtask) {
+                listViewedTasks = listViewedTasks + "\n";
             }
         }
-        return listViewedTasks;
+        return listViewedTasks + "\n";
     }
 
     public ArrayList<Task> getListOfHistory() {
@@ -86,7 +88,7 @@ public class InMemoryTaskManager implements TaskManager {
     public String removeAllTasks() {
         allTasks.clear();
         inMemoryHistoryManager.removeAllTasksInViewedTasks();
-        return "Список задач очищен.";
+        return "Список задач очищен.\n";
     }
 
     @Override
@@ -94,7 +96,7 @@ public class InMemoryTaskManager implements TaskManager {
         allEpics.clear();
         removeAllSubtasks();
         inMemoryHistoryManager.removeAllEpicsInViewedTasks();
-        return "Список эпиков очищен.";
+        return "Список эпиков очищен.\n";
     }
 
     @Override
@@ -205,7 +207,7 @@ public class InMemoryTaskManager implements TaskManager {
     public String updateTask(Task task) {
         inMemoryHistoryManager.updateOneElem(task);
         allTasks.put(task.getId(), task);
-        return printMessageAboutSuccessfulFinishingOperation() + "\n";
+        return printMessageAboutSuccessfulFinishingOperation();
     }
 
     @Override
@@ -214,7 +216,7 @@ public class InMemoryTaskManager implements TaskManager {
         oldEpic.setName(epic.getName());
         oldEpic.setDescription(epic.getDescription());
         inMemoryHistoryManager.updateOneElem(epic);
-        return printMessageAboutSuccessfulFinishingOperation() + "\n";
+        return printMessageAboutSuccessfulFinishingOperation();
 
     }
 
@@ -226,7 +228,7 @@ public class InMemoryTaskManager implements TaskManager {
         oldSubtask.setStatus(subtask.getStatus());
         checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
         inMemoryHistoryManager.updateOneElem(subtask);
-        return printMessageAboutSuccessfulFinishingOperation() + "\n";
+        return printMessageAboutSuccessfulFinishingOperation();
     }
 
     //проверка статуса эпика
@@ -255,6 +257,6 @@ public class InMemoryTaskManager implements TaskManager {
 
     //вывод сообщений о статусе выполненного процесса
     public String printMessageAboutSuccessfulFinishingOperation() {
-        return "Выполнено успешно";
+        return "Выполнено успешно" + "\n";
     }
 }
