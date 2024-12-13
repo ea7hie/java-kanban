@@ -7,21 +7,19 @@ import com.yandex.app.model.Task;
 import java.util.ArrayList;
 
 public interface TaskManager {
-//получить что-то (геттеры)
+    //получить что-то (геттеры)
     ArrayList<Task> getAllTasks();
 
     ArrayList<Epic> getAllEpics();
 
     ArrayList<Subtask> getAllSubtasks();
 
-//удалить что-то
-    void removeAllTasks();
+    //удалить что-то
+    String removeAllTasks();
 
-    void removeAllEpics();
+    String removeAllEpics();
 
     void removeAllSubtasks();
-
-    String deleteOneElementByID(int idForDelete);
 
     String deleteOneTaskByID(int idForDelete);
 
@@ -29,24 +27,24 @@ public interface TaskManager {
 
     String deleteOneSubtaskskByID(int idForDelete);
 
-//сохранить что-то
+    //сохранить что-то
     void saveNewTask(Task task);
 
     void saveNewEpic(Epic epic);
 
     void saveNewSubtask(Subtask subtask);
 
-//найти что-то
+    //найти что-то
     Task findTaskByID(int idForSearch);
 
     Epic findEpicByID(int idForSearch);
 
     Subtask findSubtaskByID(int idSubtask);
 
-//обновить что-то
-    void updateTask(Task task);
+    //обновить что-то
+    String updateTask(Task task);
 
-    void updateEpic(Epic epic);
+    String updateEpic(Epic epic);
 
-    void updateSubtask(Subtask subtask);
+    String updateSubtask(Subtask subtask);
 }

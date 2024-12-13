@@ -12,15 +12,17 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void add(Task task) {
-        if (viewedTasks.size() >= 10) {
-            viewedTasks.removeFirst();
-        }
         viewedTasks.add(task);
     }
 
     @Override
     public ArrayList<Task> getHistory() {
         return viewedTasks;
+    }
+
+    @Override
+    public void remove(int id) {
+        System.out.println(123);
     }
 
     public void removeAllTasksInViewedTasks() {
