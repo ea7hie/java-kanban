@@ -109,7 +109,7 @@ class InMemoryHistoryManagerTest {
     //проверка метода inMemoryHistoryManager.updateOneElem().
     @Test
     void shouldUpdateSubtaskWithId8() {
-        Subtask updatedSubtask8_2 = inMemoryTaskManager.findSubtaskByID(8);
+        Subtask updatedSubtask8Double = inMemoryTaskManager.findSubtaskByID(8);
         Subtask updatedSubtask8 = new Subtask("NEWNAME8", "desc 8", 8, 4);
 
         inMemoryTaskManager.updateSubtask(updatedSubtask8);
@@ -126,8 +126,8 @@ class InMemoryHistoryManagerTest {
         Subtask updatedSubtask8 = new Subtask("NEWNAME8", "desc 8", 8, 4);
 
         inMemoryTaskManager.updateSubtask(updatedSubtask8);
-        Subtask updatedSubtask8_2 = (Subtask) inMemoryTaskManager.getListOfHistory().getLast();
-        assertEquals(updatedSubtask8, updatedSubtask8_2);
+        Subtask updatedSubtask8Double = (Subtask) inMemoryTaskManager.getListOfHistory().getLast();
+        assertEquals(updatedSubtask8, updatedSubtask8Double);
     }
 
     //проверка, что утилитарный класс всегда возвращает проинициализированные и готовые к работе экземпляры менеджеров
@@ -203,8 +203,8 @@ class InMemoryHistoryManagerTest {
     void shouldDeleteDeletedSubtaskInHistory() {
         Epic epic4 = inMemoryTaskManager.findEpicByID(4);
         Subtask subtask8 = inMemoryTaskManager.findSubtaskByID(8);
-        Subtask subtask8_2 = inMemoryTaskManager.findSubtaskByID(8);
-        Epic epic4_2 = inMemoryTaskManager.findEpicByID(4);
+        Subtask subtask8Double = inMemoryTaskManager.findSubtaskByID(8);
+        Epic epic4Double = inMemoryTaskManager.findEpicByID(4);
         Task task2 = inMemoryTaskManager.findTaskByID(2);
 
         inMemoryTaskManager.deleteOneSubtaskskByID(8);
@@ -222,8 +222,8 @@ class InMemoryHistoryManagerTest {
     void shouldDeleteDeletedEpicAndHisSubtasksInHistory() {
         Epic epic4 = inMemoryTaskManager.findEpicByID(4);
         Subtask subtask8 = inMemoryTaskManager.findSubtaskByID(8);
-        Subtask subtask8_2 = inMemoryTaskManager.findSubtaskByID(8);
-        Epic epic4_2 = inMemoryTaskManager.findEpicByID(4);
+        Subtask subtask8Double = inMemoryTaskManager.findSubtaskByID(8);
+        Epic epic4Double = inMemoryTaskManager.findEpicByID(4);
         Task task2 = inMemoryTaskManager.findTaskByID(2);
         Subtask subtask9 = inMemoryTaskManager.findSubtaskByID(9);
 

@@ -245,6 +245,4 @@ class InMemoryTaskManagerTest {
         ArrayList<Integer> checkedIds = inMemoryTaskManager.findEpicByID(4).getSubtasksIDs();
         assertArrayEquals(new ArrayList[]{correctIds}, new ArrayList[]{checkedIds});
     }
-
-
 }
