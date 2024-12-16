@@ -205,7 +205,7 @@ public class InMemoryTaskManager implements TaskManager {
     //обновить что-то
     @Override
     public String updateTask(Task task) {
-        inMemoryHistoryManager.updateOneElem(task);
+        inMemoryHistoryManager.add(task);
         allTasks.put(task.getId(), task);
         return printMessageAboutSuccessfulFinishingOperation();
     }
@@ -215,7 +215,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic oldEpic = allEpics.get(epic.getId());
         oldEpic.setName(epic.getName());
         oldEpic.setDescription(epic.getDescription());
-        inMemoryHistoryManager.updateOneElem(epic);
+        inMemoryHistoryManager.add(epic);
         return printMessageAboutSuccessfulFinishingOperation();
 
     }
@@ -227,7 +227,7 @@ public class InMemoryTaskManager implements TaskManager {
         oldSubtask.setDescription(subtask.getDescription());
         oldSubtask.setStatus(subtask.getStatus());
         checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
-        inMemoryHistoryManager.updateOneElem(subtask);
+        inMemoryHistoryManager.add(subtask);
         return printMessageAboutSuccessfulFinishingOperation();
     }
 

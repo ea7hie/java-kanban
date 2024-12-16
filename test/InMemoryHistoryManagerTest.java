@@ -100,6 +100,9 @@ class InMemoryHistoryManagerTest {
         Task updatedTask = new Task("NEWNAME1", "desc 1", 1);
         inMemoryTaskManager.updateTask(updatedTask);
 
+        idsViewedTasksInTest.removeFirst();
+        idsViewedTasksInTest.add(updatedTask);
+
         checkedList = inMemoryTaskManager.getListOfHistory();
         assertArrayEquals(new ArrayList[]{idsViewedTasksInTest}, new ArrayList[]{checkedList});
     }

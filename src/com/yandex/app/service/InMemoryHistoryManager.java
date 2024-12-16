@@ -11,13 +11,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private final Map<Integer, Node<Task>> indexesOfViewedTasks = new HashMap<>();
-    DoubleLinkedList doubleLinkedList = new DoubleLinkedList();
+    private final DoubleLinkedList doubleLinkedList = new DoubleLinkedList();
 
     @Override
     public void add(Task task) {
-        if (indexesOfViewedTasks.containsKey(task.getId())) {
-            removeNode(indexesOfViewedTasks.get(task.getId()));
+        if (doubleLinkedList.indexesOfViewedTasks.containsKey(task.getId())) {
+            remove(task.getId());
         }
         doubleLinkedList.linkLast(task);
     }
@@ -29,95 +28,52 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void remove(int id) {
-        indexesOfViewedTasks.remove(id);
-    }
-
-    public void removeNode(Node<Task> curNode) {
-        remove(curNode.data.getId());
-        doubleLinkedList.allViewedTasks.remove(curNode.data);
-        if (curNode == doubleLinkedList.head) {
-            if (curNode.next != null) {
-                curNode.next.prev = null;
-                doubleLinkedList.head = curNode.next;
-            } else {
-                doubleLinkedList.head = null;
-            }
-        } else if (curNode == doubleLinkedList.tail) {
-            curNode.prev.next = null;
-            doubleLinkedList.tail = curNode.prev;
-        } else {
-            curNode.prev.next = curNode.next;
-            curNode.next.prev = curNode.prev;
-        }
+        doubleLinkedList.removeNode(doubleLinkedList.indexesOfViewedTasks.get(id));
+        doubleLinkedList.indexesOfViewedTasks.remove(id);
     }
 
     public void removeAllTasksInViewedTasks() {
         ArrayList<Integer> idsForDelete = new ArrayList<>();
-        for (Task viewedTask : doubleLinkedList.allViewedTasks) {
-            if (!(viewedTask instanceof Subtask || viewedTask instanceof Epic)
-                    && indexesOfViewedTasks.containsKey(viewedTask.getId())) {
-                idsForDelete.add(viewedTask.getId());
+        for (Node<Task> curNode : doubleLinkedList.indexesOfViewedTasks.values()) {
+            if (!(curNode.data instanceof Subtask || curNode.data instanceof Epic)) {
+                idsForDelete.add(curNode.data.getId());
             }
         }
 
-        for (Integer i : idsForDelete) {
-            removeNode(indexesOfViewedTasks.get(i));
+        for (Integer id : idsForDelete) {
+            remove(id);
         }
     }
 
     public void removeAllEpicsInViewedTasks() {
         ArrayList<Integer> idsForDelete = new ArrayList<>();
-        for (Task viewedTask : doubleLinkedList.allViewedTasks) {
-            if ((viewedTask instanceof Subtask || viewedTask instanceof Epic)
-                    && indexesOfViewedTasks.containsKey(viewedTask.getId())) {
-                idsForDelete.add(viewedTask.getId());
+        for (Node<Task> curNode : doubleLinkedList.indexesOfViewedTasks.values()) {
+            if (curNode.data instanceof Subtask || curNode.data instanceof Epic) {
+                idsForDelete.add(curNode.data.getId());
             }
         }
 
-        for (Integer i : idsForDelete) {
-            removeNode(indexesOfViewedTasks.get(i));
+        for (Integer id : idsForDelete) {
+            remove(id);
         }
     }
 
     public void removeOneElem(int idForDelete) {
-        if (indexesOfViewedTasks.containsKey(idForDelete)) {
-            removeNode(indexesOfViewedTasks.get(idForDelete));
+        if (doubleLinkedList.indexesOfViewedTasks.containsKey(idForDelete)) {
+            remove(idForDelete);
         }
-    }
-
-    public <T extends Task> void updateOneElem(T task) {
-        for (Task viewedTask : doubleLinkedList.allViewedTasks) {
-            if (viewedTask.getId() == task.getId()) {
-                viewedTask.setName(task.getName());
-                viewedTask.setDescription(task.getDescription());
-                viewedTask.setStatus(task.getStatus());
-            }
-        }
-
-        Task oldTask = indexesOfViewedTasks.get(task.getId()).data;
-        oldTask.setName(task.getName());
-        oldTask.setDescription(task.getDescription());
-        oldTask.setStatus(task.getStatus());
     }
 
     public void clearListOfViewedTasks() {
-        doubleLinkedList.allViewedTasks.clear();
-        indexesOfViewedTasks.clear();
-        doubleLinkedList = new DoubleLinkedList();
+        doubleLinkedList.clear();
     }
-
-    void addNewNode(Node<Task> node) {
-        indexesOfViewedTasks.put(node.data.getId(), node);
-    }
-
 
     class DoubleLinkedList {
-        Node<Task> head;
-        Node<Task> tail;
-        private final ArrayList<Task> allViewedTasks = new ArrayList<>();
+        private Node<Task> head;
+        private Node<Task> tail;
+        private final Map<Integer, Node<Task>> indexesOfViewedTasks = new HashMap<>();
 
-        public void linkLast(Task element) {
-            allViewedTasks.add(element);
+        private void linkLast(Task element) {
             Node<Task> newNode;
             if (head == null) {
                 newNode = new Node<>(null, element, null);
@@ -139,8 +95,53 @@ public class InMemoryHistoryManager implements HistoryManager {
             addNewNode(newNode);
         }
 
-        public ArrayList<Task> getTasks() {
-            return this.allViewedTasks;
+        private ArrayList<Task> getTasks() {
+            ArrayList<Task> allViewedTasks = new ArrayList<>();
+
+            if (head == null) {
+                return allViewedTasks;
+            }
+
+            Node<Task> curNode = head;
+            do {
+                allViewedTasks.add(curNode.data);
+                if (curNode.next != null) {
+                    curNode = curNode.next;
+                }
+            } while (curNode.next != null);
+
+            if (tail != null) {
+                allViewedTasks.add(tail.data);
+            }
+
+            return allViewedTasks;
+        }
+
+        private void clear() {
+            head = null;
+            tail = null;
+            indexesOfViewedTasks.clear();
+        }
+
+        private void addNewNode(Node<Task> node) {
+            indexesOfViewedTasks.put(node.data.getId(), node);
+        }
+
+        private void removeNode(Node<Task> curNode) {
+            if (curNode == doubleLinkedList.head) {
+                if (curNode.next == null) {
+                    doubleLinkedList.head = null;
+                } else {
+                    curNode.next.prev = null;
+                    doubleLinkedList.head = curNode.next;
+                }
+            } else if (curNode == doubleLinkedList.tail) {
+                curNode.prev.next = null;
+                doubleLinkedList.tail = curNode.prev;
+            } else {
+                curNode.prev.next = curNode.next;
+                curNode.next.prev = curNode.prev;
+            }
         }
     }
 }
