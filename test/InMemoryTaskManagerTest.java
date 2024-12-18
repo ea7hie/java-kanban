@@ -1,18 +1,15 @@
-package com.yandex.app.test;
-
 import com.yandex.app.model.Epic;
 import com.yandex.app.model.Subtask;
 import com.yandex.app.model.Task;
 import com.yandex.app.service.InMemoryTaskManager;
 import com.yandex.app.service.Managers;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Random;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest {
     private static InMemoryTaskManager inMemoryTaskManager;// = new InMemoryTaskManager();
@@ -68,7 +65,7 @@ class InMemoryTaskManagerTest {
     @Test
     void shouldNotAdd() {
         Epic checkedEpic = inMemoryTaskManager.findEpicByID(4);
-        ArrayList<Integer> idsBeforeAttemptingSave= checkedEpic.getSubtasksIDs();
+        ArrayList<Integer> idsBeforeAttemptingSave = checkedEpic.getSubtasksIDs();
         ArrayList<Integer> correctIds = new ArrayList<>(idsBeforeAttemptingSave);
 
         int someId = 100500;
@@ -198,14 +195,15 @@ class InMemoryTaskManagerTest {
                 && description.equals(inMemoryTaskManager.findTaskByID(15).getDescription())
         );
     }
+
     //проверка на неизменяемость полей при сохранении saveNewEpic()
     @Test
     void shouldSaveNewEpicsWithTrueValues() {
-       String name = "someone name for epic";
-       String description = "someone desc for epic";
+        String name = "someone name for epic";
+        String description = "someone desc for epic";
 
-       Epic newEpic = new Epic(name, description, 24);
-       inMemoryTaskManager.saveNewEpic(newEpic);
+        Epic newEpic = new Epic(name, description, 24);
+        inMemoryTaskManager.saveNewEpic(newEpic);
 
         assertTrue(name.equals(inMemoryTaskManager.findEpicByID(15).getName())
                 && description.equals(inMemoryTaskManager.findEpicByID(15).getDescription())
@@ -215,15 +213,15 @@ class InMemoryTaskManagerTest {
     //проверка на неизменяемость полей при сохранении saveNewTask()
     @Test
     void shouldSaveNewSubtasksWithTrueValues() {
-       String name = "someone name for Subtask1";
-       String description = "someone desc for Subtask1";
-       Subtask subtask1 = new Subtask(name, description, 24, 5);
-       inMemoryTaskManager.saveNewSubtask(subtask1);
+        String name = "someone name for Subtask1";
+        String description = "someone desc for Subtask1";
+        Subtask subtask1 = new Subtask(name, description, 24, 5);
+        inMemoryTaskManager.saveNewSubtask(subtask1);
 
-       String name2 = "someone name for Subtask2";
-       String description2 = "someone desc for Subtask2";
-       Subtask subtask2 = new Subtask(name2, description2, 24, 5);
-       inMemoryTaskManager.saveNewSubtask(subtask2);
+        String name2 = "someone name for Subtask2";
+        String description2 = "someone desc for Subtask2";
+        Subtask subtask2 = new Subtask(name2, description2, 24, 5);
+        inMemoryTaskManager.saveNewSubtask(subtask2);
 
         assertTrue(name.equals(inMemoryTaskManager.findSubtaskByID(15).getName())
                 && description.equals(inMemoryTaskManager.findSubtaskByID(15).getDescription())
@@ -232,5 +230,17 @@ class InMemoryTaskManagerTest {
                 && description2.equals(inMemoryTaskManager.findSubtaskByID(16).getDescription())
                 && 5 == inMemoryTaskManager.findSubtaskByID(16).getIdOfSubtaskEpic()
         );
+    }
+
+    //в эпике не должны сохраняться удалённые подзадачи
+    @Test
+    void shouldDeleteIdOfDeletedSubtaskInEpic() {
+        inMemoryTaskManager.deleteOneSubtaskskByID(8);
+
+        ArrayList<Integer> correctIds = inMemoryTaskManager.findEpicByID(4).getSubtasksIDs();
+        correctIds.remove(1);
+
+        ArrayList<Integer> checkedIds = inMemoryTaskManager.findEpicByID(4).getSubtasksIDs();
+        assertArrayEquals(new ArrayList[]{correctIds}, new ArrayList[]{checkedIds});
     }
 }

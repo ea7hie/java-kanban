@@ -19,7 +19,7 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return "\n" + "Эпик '" + this.getName() + "'" +
+        return "Эпик '" + this.getName() + "'" +
                 ", \nописание: '" + this.getDescription() + "'" +
                 ", \nid=" + this.getId() +
                 ", \nстатус прогресса всего эпика: " + this.getStatus() + "\n";
