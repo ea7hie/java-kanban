@@ -4,7 +4,6 @@ import com.yandex.app.model.Epic;
 import com.yandex.app.model.Subtask;
 import com.yandex.app.model.Task;
 import com.yandex.app.service.interfaces.HistoryManager;
-import com.yandex.app.service.model.Node;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,39 +27,21 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void remove(int id) {
-        doubleLinkedList.removeNode(doubleLinkedList.indexesOfViewedTasks.get(id));
-        doubleLinkedList.indexesOfViewedTasks.remove(id);
+        if (doubleLinkedList.indexesOfViewedTasks.containsKey(id)) {
+            doubleLinkedList.removeNode(doubleLinkedList.indexesOfViewedTasks.get(id));
+            doubleLinkedList.removeOneElemFromMap(id);
+        }
     }
 
     public void removeAllTasksInViewedTasks() {
-        ArrayList<Integer> idsForDelete = new ArrayList<>();
-        for (Node<Task> curNode : doubleLinkedList.indexesOfViewedTasks.values()) {
-            if (!(curNode.data instanceof Subtask || curNode.data instanceof Epic)) {
-                idsForDelete.add(curNode.data.getId());
-            }
-        }
-
-        for (Integer id : idsForDelete) {
+        for (Integer id : doubleLinkedList.findIdsOfAllTasksInViewedTasks()) {
             remove(id);
         }
     }
 
     public void removeAllEpicsInViewedTasks() {
-        ArrayList<Integer> idsForDelete = new ArrayList<>();
-        for (Node<Task> curNode : doubleLinkedList.indexesOfViewedTasks.values()) {
-            if (curNode.data instanceof Subtask || curNode.data instanceof Epic) {
-                idsForDelete.add(curNode.data.getId());
-            }
-        }
-
-        for (Integer id : idsForDelete) {
+        for (Integer id : doubleLinkedList.findIdsOfAllEpicsInViewedTasks()) {
             remove(id);
-        }
-    }
-
-    public void removeOneElem(int idForDelete) {
-        if (doubleLinkedList.indexesOfViewedTasks.containsKey(idForDelete)) {
-            remove(idForDelete);
         }
     }
 
@@ -68,10 +49,27 @@ public class InMemoryHistoryManager implements HistoryManager {
         doubleLinkedList.clear();
     }
 
-    class DoubleLinkedList {
+    private class DoubleLinkedList {
         private Node<Task> head;
         private Node<Task> tail;
         private final Map<Integer, Node<Task>> indexesOfViewedTasks = new HashMap<>();
+
+        private static class Node<T> {
+            private T data;
+            private Node<T> next;
+            private Node<T> prev;
+
+            public Node(Node<T> prev, T data, Node<T> next) {
+                this.data = data;
+                this.next = next;
+                this.prev = prev;
+            }
+
+            @Override
+            public String toString() {
+                return data.toString();
+            }
+        }
 
         private void linkLast(Task element) {
             Node<Task> newNode;
@@ -142,6 +140,30 @@ public class InMemoryHistoryManager implements HistoryManager {
                 curNode.prev.next = curNode.next;
                 curNode.next.prev = curNode.prev;
             }
+        }
+
+        private ArrayList<Integer> findIdsOfAllTasksInViewedTasks() {
+            ArrayList<Integer> idsForDelete = new ArrayList<>();
+            for (Node<Task> curNode : doubleLinkedList.indexesOfViewedTasks.values()) {
+                if (!(curNode.data instanceof Subtask || curNode.data instanceof Epic)) {
+                    idsForDelete.add(curNode.data.getId());
+                }
+            }
+            return idsForDelete;
+        }
+
+        private ArrayList<Integer> findIdsOfAllEpicsInViewedTasks() {
+            ArrayList<Integer> idsForDelete = new ArrayList<>();
+            for (Node<Task> curNode : doubleLinkedList.indexesOfViewedTasks.values()) {
+                if (curNode.data instanceof Subtask || curNode.data instanceof Epic) {
+                    idsForDelete.add(curNode.data.getId());
+                }
+            }
+            return idsForDelete;
+        }
+
+        private void removeOneElemFromMap(int id) {
+            indexesOfViewedTasks.remove(id);
         }
     }
 }
