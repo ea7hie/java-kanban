@@ -67,7 +67,7 @@ class InMemoryHistoryManagerTest {
         idsViewedTasksInTest.add(epic5);
         idsViewedTasksInTest.add(subtask9);
 
-        System.out.println(inMemoryTaskManager.removeAllTasks());
+        inMemoryTaskManager.removeAllTasks();
         checkedList = inMemoryTaskManager.getListOfHistory();
         assertArrayEquals(new ArrayList[]{idsViewedTasksInTest}, new ArrayList[]{checkedList});
     }
@@ -83,7 +83,7 @@ class InMemoryHistoryManagerTest {
         Subtask subtask11 = inMemoryTaskManager.findSubtaskByID(11);
         Subtask subtask12 = inMemoryTaskManager.findSubtaskByID(12);
 
-        System.out.println(inMemoryTaskManager.removeAllEpics());
+        inMemoryTaskManager.removeAllEpics();
 
         idsViewedTasksInTest.remove(1);
         idsViewedTasksInTest.remove(1);

@@ -65,9 +65,11 @@ public class Main {
                     break;
                 case "2":
                     if (isTask) {
-                        System.out.println(inMemoryTaskManager.removeAllTasks());
+                        inMemoryTaskManager.removeAllTasks();
+                        System.out.println("Список задач очищен.\n");
                     } else {
-                        System.out.println(inMemoryTaskManager.removeAllEpics());
+                        inMemoryTaskManager.removeAllEpics();
+                        System.out.println("Список эпиков очищен.\n");
                     }
                     break;
                 case "3":
@@ -127,36 +129,40 @@ public class Main {
                         switch (choosingWhatToUpdate) {
                             case 1:
                                 if (isTask && inMemoryTaskManager.isTaskAddedByID(idForUpdate)) {
-                                    System.out.println(inMemoryTaskManager.updateTask(new Task(
+                                    inMemoryTaskManager.updateTask(new Task(
                                                     getNewValueForUpdate(),
                                                     inMemoryTaskManager.findTaskByID(idForUpdate).getDescription(),
                                                     idForUpdate
-                                            ))
+                                            )
                                     );
+                                    System.out.println(printMessageAboutSuccessfulFinishingOperation());
                                 } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
-                                    System.out.println(inMemoryTaskManager.updateEpic(new Epic(
+                                    inMemoryTaskManager.updateEpic(new Epic(
                                                     getNewValueForUpdate(),
                                                     inMemoryTaskManager.findEpicByID(idForUpdate).getDescription(),
                                                     idForUpdate
-                                            ))
+                                            )
                                     );
+                                    System.out.println(printMessageAboutSuccessfulFinishingOperation());
                                 } else {
                                     System.out.println("Не найдено, введён неверный формат.\n");
                                 }
                                 break;
                             case 2:
                                 if (isTask && inMemoryTaskManager.isTaskAddedByID(idForUpdate)) {
-                                    System.out.println(inMemoryTaskManager.updateTask(new Task(
+                                    inMemoryTaskManager.updateTask(new Task(
                                                     inMemoryTaskManager.findTaskByID(idForUpdate).getName(),
                                                     getNewValueForUpdate(), idForUpdate
-                                            ))
+                                            )
                                     );
+                                    System.out.println(printMessageAboutSuccessfulFinishingOperation());
                                 } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
-                                    System.out.println(inMemoryTaskManager.updateEpic(new Epic(
+                                    inMemoryTaskManager.updateEpic(new Epic(
                                                     inMemoryTaskManager.findEpicByID(idForUpdate).getName(),
                                                     getNewValueForUpdate(), idForUpdate
-                                            ))
+                                            )
                                     );
+                                    System.out.println(printMessageAboutSuccessfulFinishingOperation());
                                 } else {
                                     System.out.println("Не найдено, введён неверный формат.\n");
                                 }
@@ -176,7 +182,8 @@ public class Main {
                                                 idForUpdate
                                         );
                                         newTask.setStatus(newStatus);
-                                        System.out.println(inMemoryTaskManager.updateTask(newTask));
+                                        inMemoryTaskManager.updateTask(newTask);
+                                        System.out.println(printMessageAboutSuccessfulFinishingOperation());
                                     } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
                                         System.out.println("Введите id подзадачи, которую нужно сменить.");
                                         int index = checkNextInt();
@@ -190,7 +197,8 @@ public class Main {
                                                     index, epic.getId()
                                             );
                                             newSubtask.setStatus(newStatus);
-                                            System.out.println(inMemoryTaskManager.updateSubtask(newSubtask));
+                                            inMemoryTaskManager.updateSubtask(newSubtask);
+                                            System.out.println(printMessageAboutSuccessfulFinishingOperation());
                                         } else {
                                             System.out.println("Ошибка. Подзадачи с этим номером нет.\n");
                                         }
@@ -217,7 +225,8 @@ public class Main {
                                         Subtask newSubtask = new Subtask(inputNameSubtaskOfEpic(),
                                                 inputDescriptionSubtaskOfEpic(), index, idForUpdate
                                         );
-                                        System.out.println(inMemoryTaskManager.updateSubtask(newSubtask));
+                                        inMemoryTaskManager.updateSubtask(newSubtask);
+                                        System.out.println(printMessageAboutSuccessfulFinishingOperation());
                                     } else {
                                         System.out.println("Ошибка. Подзадачи с этим id в этом эпике нет.\n");
                                     }
@@ -237,11 +246,14 @@ public class Main {
                     System.out.println("Введите id элемента, который хотите удалить.");
                     int idForDelete = checkNextInt();
                     if (inMemoryTaskManager.isTaskAddedByID(idForDelete)) {
-                        System.out.println(inMemoryTaskManager.deleteOneTaskByID(idForDelete));
+                        inMemoryTaskManager.deleteOneTaskByID(idForDelete);
+                        System.out.println(printMessageAboutSuccessfulFinishingOperation());
                     } else if (inMemoryTaskManager.isEpicAddedByID(idForDelete)) {
-                        System.out.println(inMemoryTaskManager.deleteOneEpicByID(idForDelete));
+                        inMemoryTaskManager.deleteOneEpicByID(idForDelete);
+                        System.out.println(printMessageAboutSuccessfulFinishingOperation());
                     } else if (inMemoryTaskManager.isSubtaskAddedByID(idForDelete)) {
-                        System.out.println(inMemoryTaskManager.deleteOneSubtaskskByID(idForDelete));
+                        inMemoryTaskManager.deleteOneSubtaskskByID(idForDelete);
+                        System.out.println(printMessageAboutSuccessfulFinishingOperation());
                     } else {
                         System.out.println("Задачи с таким id нет в вашем списке.\n");
                     }
@@ -370,5 +382,9 @@ public class Main {
     public static String getNewValueForUpdate() {
         System.out.println("Введите новое значение.");
         return scanner.nextLine();
+    }
+
+    public static String printMessageAboutSuccessfulFinishingOperation() {
+        return "Выполнено успешно" + "\n";
     }
 }

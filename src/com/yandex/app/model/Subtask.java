@@ -1,7 +1,5 @@
 package com.yandex.app.model;
 
-import com.yandex.app.Main;
-
 public class Subtask extends Task {
     private int idOfSubtaskEpic;
 
@@ -15,9 +13,7 @@ public class Subtask extends Task {
     }
 
     public void setIdOfSubtaskEpic(int idOfSubtaskEpic) {
-        if (Main.inMemoryTaskManager.isEpicAddedByID(idOfSubtaskEpic)) {
-            this.idOfSubtaskEpic = idOfSubtaskEpic;
-        }
+        this.idOfSubtaskEpic = idOfSubtaskEpic;
     }
 
     @Override

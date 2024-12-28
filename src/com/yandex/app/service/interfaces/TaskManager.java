@@ -15,24 +15,24 @@ public interface TaskManager {
     ArrayList<Subtask> getAllSubtasks();
 
     //удалить что-то
-    String removeAllTasks();
+    void removeAllTasks();
 
-    String removeAllEpics();
+    void removeAllEpics();
 
     void removeAllSubtasks();
 
-    String deleteOneTaskByID(int idForDelete);
+    void deleteOneTaskByID(int idForDelete);
 
-    String deleteOneEpicByID(int idForDelete);
+    void deleteOneEpicByID(int idForDelete);
 
-    String deleteOneSubtaskskByID(int idForDelete);
+    void deleteOneSubtaskskByID(int idForDelete);
 
     //сохранить что-то
-    void saveNewTask(Task task);
+    Task saveNewTask(Task task);
 
-    void saveNewEpic(Epic epic);
+    Epic saveNewEpic(Epic epic);
 
-    void saveNewSubtask(Subtask subtask);
+    Subtask saveNewSubtask(Subtask subtask);
 
     //найти что-то
     Task findTaskByID(int idForSearch);
@@ -42,9 +42,9 @@ public interface TaskManager {
     Subtask findSubtaskByID(int idSubtask);
 
     //обновить что-то
-    String updateTask(Task task);
+    Task updateTask(Task task);
 
-    String updateEpic(Epic epic);
+    Epic updateEpic(Epic epic);
 
-    String updateSubtask(Subtask subtask);
+    Subtask updateSubtask(Subtask subtask);
 }
