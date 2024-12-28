@@ -1,9 +1,6 @@
 package com.yandex.app.service;
 
-import com.yandex.app.model.Epic;
-import com.yandex.app.model.Progress;
-import com.yandex.app.model.Subtask;
-import com.yandex.app.model.Task;
+import com.yandex.app.model.*;
 import com.yandex.app.service.exceptions.ManagerSaveException;
 
 import java.io.*;
@@ -284,10 +281,4 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             checkedEpic.setStatus(Progress.IN_PROGRESS);
         }
     }
-}
-
-enum Tasks {
-    TASK,
-    EPIC,
-    SUBTASK
 }
