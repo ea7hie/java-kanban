@@ -33,11 +33,19 @@ class InMemoryHistoryManagerTest {
         inMemoryTaskManager.saveNewSubtask(new Subtask("---2", "Desc---4", 1, 4));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---3", "Desc---4", 1, 4));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---4", "Desc---4", 1, 4));
+        /*inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(7);
+        inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(8);
+        inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(9);
+        inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(10);*/
 
         inMemoryTaskManager.saveNewSubtask(new Subtask("---1", "Desc---5", 1, 5));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---2", "Desc---5", 1, 5));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---3", "Desc---5", 1, 5));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---4", "Desc---5", 1, 5));
+        /*inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(11);
+        inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(12);
+        inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(13);
+        inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(14);*/
 
         Task task1 = inMemoryTaskManager.findTaskByID(1);
         Epic epic4 = inMemoryTaskManager.findEpicByID(4);
@@ -222,6 +230,8 @@ class InMemoryHistoryManagerTest {
     @Test
     void shouldDeleteDeletedEpicAndHisSubtasksInHistory() {
         Epic epic4 = inMemoryTaskManager.findEpicByID(4);
+        epic4.saveNewSubtaskIDs(8);
+        epic4.saveNewSubtaskIDs(9);
         Subtask subtask8 = inMemoryTaskManager.findSubtaskByID(8);
         Subtask subtask8Double = inMemoryTaskManager.findSubtaskByID(8);
         Epic epic4Double = inMemoryTaskManager.findEpicByID(4);

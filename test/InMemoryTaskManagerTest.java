@@ -12,7 +12,7 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest {
-    private static InMemoryTaskManager inMemoryTaskManager;// = new InMemoryTaskManager();
+    private static InMemoryTaskManager inMemoryTaskManager;//
     private static final Random random = new Random();
 
     @BeforeEach
@@ -30,11 +30,20 @@ class InMemoryTaskManagerTest {
         inMemoryTaskManager.saveNewSubtask(new Subtask("---2", "Desc---4", 1, 4));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---3", "Desc---4", 1, 4));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---4", "Desc---4", 1, 4));
+        inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(7);
+        inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(8);
+        inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(9);
+        inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(10);
 
         inMemoryTaskManager.saveNewSubtask(new Subtask("---1", "Desc---5", 1, 5));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---2", "Desc---5", 1, 5));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---3", "Desc---5", 1, 5));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---4", "Desc---5", 1, 5));
+        inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(11);
+        inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(12);
+        inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(13);
+        inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(14);
+
     }
 
     //два объекта Task равны, если равны их id
@@ -235,10 +244,10 @@ class InMemoryTaskManagerTest {
     //в эпике не должны сохраняться удалённые подзадачи
     @Test
     void shouldDeleteIdOfDeletedSubtaskInEpic() {
-        inMemoryTaskManager.deleteOneSubtaskskByID(8);
-
         ArrayList<Integer> correctIds = inMemoryTaskManager.findEpicByID(4).getSubtasksIDs();
         correctIds.remove(1);
+
+        inMemoryTaskManager.deleteOneSubtaskskByID(8);
 
         ArrayList<Integer> checkedIds = inMemoryTaskManager.findEpicByID(4).getSubtasksIDs();
         assertArrayEquals(new ArrayList[]{correctIds}, new ArrayList[]{checkedIds});
