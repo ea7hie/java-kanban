@@ -7,35 +7,21 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private Path fileForSaving;
-    private final HashMap<Integer, Task> allTasks = new HashMap<>();
-    private final HashMap<Integer, Epic> allEpics = new HashMap<>();
-    private final HashMap<Integer, Subtask> allSubtasks = new HashMap<>();
+    private final Path defaultPath;
 
     //создатели
     public FileBackedTaskManager(Path fileForSaving) {
         this.fileForSaving = fileForSaving;
+        this.defaultPath = fileForSaving;
     }
 
     public static FileBackedTaskManager loadFromFile(File file) {
-        return new FileBackedTaskManager(file.toPath());
-    }
-
-    //геттеры
-    public HashMap<Integer, Task> getAllTasksInMap() {
-        return allTasks;
-    }
-
-    public HashMap<Integer, Epic> getAllEpicsInMap() {
-        return allEpics;
-    }
-
-    public HashMap<Integer, Subtask> getAllSubtasksInMap() {
-        return allSubtasks;
+        FileBackedTaskManager fm = new FileBackedTaskManager(file.toPath());
+        fm.recodeInArraysFromFile();
+        return fm;
     }
 
     //конвертеры
@@ -63,13 +49,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private Task fromStringToTask(String taskInString) {
         String[] infoAboutTask = taskInString.split(",");
 
-        switch (infoAboutTask[1]) {
-            case "TASK":
+        switch (Tasks.valueOf(infoAboutTask[1])) {
+            case Tasks.TASK:
                 Task newTask = new Task(infoAboutTask[2], infoAboutTask[4], -1);
                 newTask.setId(Integer.valueOf(infoAboutTask[0]));
                 newTask.setStatus(Progress.valueOf(infoAboutTask[3]));
                 return newTask;
-            case "EPIC":
+            case Tasks.EPIC:
                 Epic newEpic = new Epic(infoAboutTask[2], infoAboutTask[4], -1);
                 newEpic.setId(Integer.valueOf(infoAboutTask[0]));
                 newEpic.setStatus(Progress.valueOf(infoAboutTask[3]));
@@ -91,8 +77,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     "Произошла ошибка обновления хранилища: старые данные не могут быть удалены...");
         }
 
-        fileForSaving = Paths.get("C:\\Users\\user\\IdeaProjects\\4sprintBeginningFinalTask\\java-kanban" +
-                "\\src\\com\\yandex\\app\\service\\storage\\allTasks.txt");
+        fileForSaving = defaultPath;
 
         try {
             Files.createFile(fileForSaving);
@@ -126,7 +111,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public void recodeInArraysFromFile() {
+    private void recodeInArraysFromFile() {
         try (Reader reader = new FileReader(fileForSaving.toString());
              BufferedReader br = new BufferedReader(reader)) {
             String curTask = br.readLine(); //чтобы проскочить первую строку "id,type,name,status,description,epic\n"
@@ -142,7 +127,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
             }
 
-            //но теперь эпики не знают какие подзадачи к ним относятся
+            //но сейчас эпики не знают какие подзадачи к ним относятся
             for (Subtask subtask : allSubtasks.values()) {
                 allEpics.get(subtask.getIdOfSubtaskEpic()).saveNewSubtaskIDs(subtask.getId());
             }
@@ -173,65 +158,55 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     //удалить что-то
     @Override
     public void removeAllTasks() {
-        allTasks.clear();
+        super.removeAllTasks();
         save();
     }
 
     @Override
     public void removeAllEpics() {
-        allEpics.clear();
-        allSubtasks.clear();
+        super.removeAllEpics();
         save();
     }
 
 
     @Override
     public void deleteOneTaskByID(int idForDelete) {
-        allTasks.remove(idForDelete);
+        super.deleteOneTaskByID(idForDelete);
         save();
     }
 
     @Override
     public void deleteOneEpicByID(int idForDelete) {
-        for (int index : allEpics.get(idForDelete).getSubtasksIDs()) {
-            allSubtasks.remove(index);
-        }
-        allEpics.remove(idForDelete);
+        super.deleteOneEpicByID(idForDelete);
         save();
     }
 
     @Override
     public void deleteOneSubtaskskByID(int idForDelete) {
-        int idOfEpic = allSubtasks.get(idForDelete).getIdOfSubtaskEpic();
-        allEpics.get(idOfEpic).getSubtasksIDs().remove(Integer.valueOf(idForDelete));
-        allSubtasks.remove(idForDelete);
-        checkProgressStatusOfEpic(idOfEpic);
+        super.deleteOneSubtaskskByID(idForDelete);
         save();
     }
 
     //сохранить что-то
     @Override
     public Task saveNewTask(Task task) {
-        allTasks.put(task.getId(), task);
+        super.saveNewTask(task);
         save();
         return task;
     }
 
     @Override
     public Epic saveNewEpic(Epic epic) {
-        if (epic.getSubtasksIDs() != null) {
-            for (int subtaskID : epic.getSubtasksIDs()) {
-                allSubtasks.get(subtaskID).setIdOfSubtaskEpic(epic.getId());
-            }
-        }
-        allEpics.put(epic.getId(), epic);
+        super.saveNewEpic(epic);
         save();
         return epic;
     }
 
     @Override
     public Subtask saveNewSubtask(Subtask subtask) {
-        allSubtasks.put(subtask.getId(), subtask);
+        super.saveNewSubtask(subtask);
+        allEpics.get(subtask.getIdOfSubtaskEpic()).saveNewSubtaskIDs(subtask.getId());
+        checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
         save();
         return subtask;
     }
@@ -239,46 +214,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     //обновить что-то
     @Override
     public Task updateTask(Task task) {
-        allTasks.put(task.getId(), task);
+        super.updateTask(task);
         save();
         return task;
     }
 
     @Override
     public Epic updateEpic(Epic epic) {
-        allEpics.put(epic.getId(), epic);
+        super.updateEpic(epic);
         save();
         return epic;
     }
 
     @Override
     public Subtask updateSubtask(Subtask subtask) {
-        allSubtasks.put(subtask.getId(), subtask);
-        checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
+        super.updateSubtask(subtask);
         save();
         return subtask;
-    }
-
-    private void checkProgressStatusOfEpic(int idOfEpic) {
-        int counterOfNEW = 0;
-        int counterOfDONE = 0;
-
-        Epic checkedEpic = allEpics.get(idOfEpic);
-        for (Integer id : checkedEpic.getSubtasksIDs()) {
-            Subtask currentCheckingSubtask = allSubtasks.get(id);
-            if (currentCheckingSubtask.getStatus().equals(Progress.NEW)) {
-                counterOfNEW++;
-            } else if (currentCheckingSubtask.getStatus().equals(Progress.DONE)) {
-                counterOfDONE++;
-            }
-        }
-
-        if (counterOfNEW == checkedEpic.getSubtasksIDs().size()) {
-            checkedEpic.setStatus(Progress.NEW);
-        } else if (counterOfDONE == checkedEpic.getSubtasksIDs().size()) {
-            checkedEpic.setStatus(Progress.DONE);
-        } else {
-            checkedEpic.setStatus(Progress.IN_PROGRESS);
-        }
     }
 }

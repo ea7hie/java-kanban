@@ -51,10 +51,19 @@ public class Main {
             fm = new FileBackedTaskManager(fileForSave);
         } else {
             fm = FileBackedTaskManager.loadFromFile(fileForSave.toFile());
-            fm.recodeInArraysFromFile();
-            inMemoryTaskManager.setAllTasks(fm.getAllTasksInMap());
-            inMemoryTaskManager.setAllEpics(fm.getAllEpicsInMap());
-            inMemoryTaskManager.setAllSubtasks(fm.getAllSubtasksInMap());
+
+            for (Task task : fm.getAllTasks()) {
+                inMemoryTaskManager.addTaskFromFile(task);
+            }
+
+            for (Epic epic : fm.getAllEpics()) {
+                inMemoryTaskManager.addEpicFromFile(epic);
+            }
+
+            for (Subtask subtask : fm.getAllSubtasks()) {
+                inMemoryTaskManager.addSubtaskFromFile(subtask);
+            }
+
             inMemoryTaskManager.setIdOfNewTask(inMemoryTaskManager.getAllTasks().size() +
                     inMemoryTaskManager.getAllEpics().size() + inMemoryTaskManager.getAllSubtasks().size());
         }
@@ -148,15 +157,13 @@ public class Main {
                         int amountSteps = checkNextInt();
 
                         Epic newEpic = new Epic(name, description, temporaryID);
-                        inMemoryTaskManager.saveNewEpic(newEpic);
-                        fm.saveNewEpic(newEpic);
+                        fm.saveNewEpic(inMemoryTaskManager.saveNewEpic(newEpic));
                         for (int i = 1; i <= amountSteps; i++) {
                             Subtask newSubtask = new Subtask(
                                     inputNameSubtaskOfEpic(), inputDescriptionSubtaskOfEpic(),
                                     temporaryID, newEpic.getId()
                             );
-                            inMemoryTaskManager.saveNewSubtask(newSubtask);
-                            fm.saveNewSubtask(newSubtask);
+                            fm.saveNewSubtask(inMemoryTaskManager.saveNewSubtask(newSubtask));
                         }
                     }
                     System.out.println("Успешно сохранено!\n");

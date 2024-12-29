@@ -11,10 +11,10 @@ import java.util.HashMap;
 
 public class InMemoryTaskManager implements TaskManager {
     private final InMemoryHistoryManager inMemoryHistoryManager = (InMemoryHistoryManager) Managers.getDefaultHistory();
-    private HashMap<Integer, Task> allTasks;
-    private HashMap<Integer, Epic> allEpics;
-    private HashMap<Integer, Subtask> allSubtasks;
-    private final ArrayList<Integer> allIDs = new ArrayList<>();
+    protected HashMap<Integer, Task> allTasks;
+    protected HashMap<Integer, Epic> allEpics;
+    protected HashMap<Integer, Subtask> allSubtasks;
+    protected final ArrayList<Integer> allIDs = new ArrayList<>();
     private int idOfNewTask = 0;
 
     public InMemoryTaskManager() {
@@ -95,20 +95,6 @@ public class InMemoryTaskManager implements TaskManager {
         return inMemoryHistoryManager.getHistory();
     }
 
-    //сеттеры
-    public void setAllTasks(HashMap<Integer, Task> allTasks) {
-        this.allTasks = allTasks;
-    }
-
-    public void setAllEpics(HashMap<Integer, Epic> allEpics) {
-        this.allEpics = allEpics;
-    }
-
-    public void setAllSubtasks(HashMap<Integer, Subtask> allSubtasks) {
-        this.allSubtasks = allSubtasks;
-    }
-
-
     public void setIdOfNewTask(int idOfNewTask) {
         this.idOfNewTask = idOfNewTask;
     }
@@ -185,9 +171,19 @@ public class InMemoryTaskManager implements TaskManager {
     public Subtask saveNewSubtask(Subtask subtask) {
         subtask.setId(getIdOfNewTask());
         allSubtasks.put(subtask.getId(), subtask);
-        allEpics.get(subtask.getIdOfSubtaskEpic()).saveNewSubtaskIDs(subtask.getId());
-        checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
         return subtask;
+    }
+
+    public void addTaskFromFile(Task task) {
+        allTasks.put(task.getId(), task);
+    }
+
+    public void addEpicFromFile(Epic epic) {
+        allEpics.put(epic.getId(), epic);
+    }
+
+    public void addSubtaskFromFile(Subtask subtask) {
+        allSubtasks.put(subtask.getId(), subtask);
     }
 
     //найти что-то
@@ -260,7 +256,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     //проверка статуса эпика
-    private void checkProgressStatusOfEpic(int idOfEpic) {
+    protected void checkProgressStatusOfEpic(int idOfEpic) {
         int counterOfNEW = 0;
         int counterOfDONE = 0;
 
