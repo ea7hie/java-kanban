@@ -30,20 +30,11 @@ class InMemoryTaskManagerTest {
         inMemoryTaskManager.saveNewSubtask(new Subtask("---2", "Desc---4", 1, 4));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---3", "Desc---4", 1, 4));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---4", "Desc---4", 1, 4));
-        inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(7);
-        inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(8);
-        inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(9);
-        inMemoryTaskManager.findEpicByID(4).saveNewSubtaskIDs(10);
 
         inMemoryTaskManager.saveNewSubtask(new Subtask("---1", "Desc---5", 1, 5));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---2", "Desc---5", 1, 5));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---3", "Desc---5", 1, 5));
         inMemoryTaskManager.saveNewSubtask(new Subtask("---4", "Desc---5", 1, 5));
-        inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(11);
-        inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(12);
-        inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(13);
-        inMemoryTaskManager.findEpicByID(5).saveNewSubtaskIDs(14);
-
     }
 
     //два объекта Task равны, если равны их id

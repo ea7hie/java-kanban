@@ -7,10 +7,12 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private Path fileForSaving;
     private final Path defaultPath;
+    private final String headLine = "id,type,name,status,description,epic\n";
 
     //создатели
     public FileBackedTaskManager(Path fileForSaving) {
@@ -24,12 +26,25 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return fm;
     }
 
+    //геттеры
+    public HashMap<Integer, Task> getAllTasksInMap() {
+        return new HashMap<>(allTasks);
+    }
+
+    public HashMap<Integer, Epic> getAllEpicsInMap() {
+        return new HashMap<>(allEpics);
+    }
+
+    public HashMap<Integer, Subtask> getAllSubtasksInMap() {
+        return new HashMap<>(allSubtasks);
+    }
+
     //конвертеры
     private String fromTaskToString(Task task) {
         int indexOfType = task.getClass().toString().split("\\.").length - 1;
-        String type = task.getClass().toString().split("\\.")[indexOfType].toUpperCase().toUpperCase();
+        String type = task.getClass().toString().split("\\.")[indexOfType].toUpperCase();
 
-        if (task.getClass().toString().equals("class com.yandex.app.model.Subtask")) {
+        if (Tasks.valueOf(type) == Tasks.SUBTASK) {
             Subtask subtask = (Subtask) task;
             String[] infoAboutTask = {String.valueOf(subtask.getId()),
                     Tasks.valueOf(type).toString(), subtask.getName(),
@@ -117,9 +132,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             String curTask = br.readLine(); //чтобы проскочить первую строку "id,type,name,status,description,epic\n"
             while (br.ready()) {
                 curTask = br.readLine();
-                if (curTask.split(",")[1].equals("TASK")) {
+                String type = curTask.split(",")[1];
+                if (Tasks.valueOf(type) == Tasks.TASK) {
                     allTasks.put(Integer.parseInt(curTask.split(",")[0]), fromStringToTask(curTask));
-                } else if (curTask.split(",")[1].equals("EPIC")) {
+                } else if (Tasks.valueOf(type) == Tasks.EPIC) {
                     allEpics.put(Integer.parseInt(curTask.split(",")[0]), (Epic) fromStringToTask(curTask));
                 } else {
                     allSubtasks.put(Integer.parseInt(curTask.split(",")[0]),
@@ -140,7 +156,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private void writeHeadLine() {
         try (Writer writeNewStringInStorage = new FileWriter(fileForSaving.toString(),
                 StandardCharsets.UTF_8, true)) {
-            writeNewStringInStorage.write("id,type,name,status,description,epic\n");
+            writeNewStringInStorage.write(headLine);
         } catch (IOException e) {
             throw new ManagerSaveException("Приносим свои извинения, вы не должны были видеть это!" +
                     "Произошла ошибка сохранения при записи заголовка в хранилище...");
@@ -204,9 +220,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public Subtask saveNewSubtask(Subtask subtask) {
-        super.saveNewSubtask(subtask);
-        allEpics.get(subtask.getIdOfSubtaskEpic()).saveNewSubtaskIDs(subtask.getId());
-        checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
+        allSubtasks.put(subtask.getId(), subtask);
         save();
         return subtask;
     }

@@ -52,20 +52,9 @@ public class Main {
         } else {
             fm = FileBackedTaskManager.loadFromFile(fileForSave.toFile());
 
-            for (Task task : fm.getAllTasks()) {
-                inMemoryTaskManager.addTaskFromFile(task);
-            }
-
-            for (Epic epic : fm.getAllEpics()) {
-                inMemoryTaskManager.addEpicFromFile(epic);
-            }
-
-            for (Subtask subtask : fm.getAllSubtasks()) {
-                inMemoryTaskManager.addSubtaskFromFile(subtask);
-            }
-
-            inMemoryTaskManager.setIdOfNewTask(inMemoryTaskManager.getAllTasks().size() +
-                    inMemoryTaskManager.getAllEpics().size() + inMemoryTaskManager.getAllSubtasks().size());
+            inMemoryTaskManager.setAllTasks(fm.getAllTasksInMap());
+            inMemoryTaskManager.setAllEpics(fm.getAllEpicsInMap());
+            inMemoryTaskManager.setAllSubtasks(fm.getAllSubtasksInMap());
         }
 
         System.out.println("Добро пожаловать в Трекер Задач, в ваш персональный помощник!\n");
