@@ -7,17 +7,18 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private Path fileForSaving;
     private final Path defaultPath;
     private final String headLine = "id,type,name,status,description,epic\n";
+    private final InMemoryTaskManager inMemoryTaskManager;
 
     //создатели
     public FileBackedTaskManager(Path fileForSaving) {
         this.fileForSaving = fileForSaving;
         this.defaultPath = fileForSaving;
+        inMemoryTaskManager = (InMemoryTaskManager) Managers.getDefaultTaskManager();
     }
 
     public static FileBackedTaskManager loadFromFile(File file) {
@@ -26,17 +27,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return fm;
     }
 
-    //геттеры
-    public HashMap<Integer, Task> getAllTasksInMap() {
-        return new HashMap<>(allTasks);
-    }
-
-    public HashMap<Integer, Epic> getAllEpicsInMap() {
-        return new HashMap<>(allEpics);
-    }
-
-    public HashMap<Integer, Subtask> getAllSubtasksInMap() {
-        return new HashMap<>(allSubtasks);
+    public InMemoryTaskManager getInMemoryTaskManager() {
+        return inMemoryTaskManager;
     }
 
     //конвертеры
@@ -129,17 +121,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private void recodeInArraysFromFile() {
         try (Reader reader = new FileReader(fileForSaving.toString());
              BufferedReader br = new BufferedReader(reader)) {
-            String curTask = br.readLine(); //чтобы проскочить первую строку "id,type,name,status,description,epic\n"
+            String curTaskInString = br.readLine(); //чтобы проскочить первую строку "id,type,name,status,desc,epic\n"
             while (br.ready()) {
-                curTask = br.readLine();
-                String type = curTask.split(",")[1];
+                curTaskInString = br.readLine();
+                String type = curTaskInString.split(",")[1];
                 if (Tasks.valueOf(type) == Tasks.TASK) {
-                    allTasks.put(Integer.parseInt(curTask.split(",")[0]), fromStringToTask(curTask));
+                    Task curTaskInTask = fromStringToTask(curTaskInString);
+                    allTasks.put(curTaskInTask.getId(), curTaskInTask);
+                    inMemoryTaskManager.allTasks.put(curTaskInTask.getId(), curTaskInTask);
                 } else if (Tasks.valueOf(type) == Tasks.EPIC) {
-                    allEpics.put(Integer.parseInt(curTask.split(",")[0]), (Epic) fromStringToTask(curTask));
+                    Epic curEpicInEpic = (Epic) fromStringToTask(curTaskInString);
+                    allEpics.put(curEpicInEpic.getId(), curEpicInEpic);
+                    inMemoryTaskManager.allEpics.put(curEpicInEpic.getId(), curEpicInEpic);
                 } else {
-                    allSubtasks.put(Integer.parseInt(curTask.split(",")[0]),
-                            (Subtask) fromStringToTask(curTask));
+                    Subtask curSubtaskInSubtask = (Subtask) fromStringToTask(curTaskInString);
+                    allSubtasks.put(curSubtaskInSubtask.getId(), curSubtaskInSubtask);
+                    inMemoryTaskManager.allSubtasks.put(curSubtaskInSubtask.getId(), curSubtaskInSubtask);
                 }
             }
 

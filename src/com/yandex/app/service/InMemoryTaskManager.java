@@ -95,19 +95,6 @@ public class InMemoryTaskManager implements TaskManager {
         return inMemoryHistoryManager.getHistory();
     }
 
-    //сеттеры
-    public void setAllTasks(HashMap<Integer, Task> allTasks) {
-        this.allTasks = allTasks;
-    }
-
-    public void setAllEpics(HashMap<Integer, Epic> allEpics) {
-        this.allEpics = allEpics;
-    }
-
-    public void setAllSubtasks(HashMap<Integer, Subtask> allSubtasks) {
-        this.allSubtasks = allSubtasks;
-    }
-
     //удалить что-то
     @Override
     public void removeAllTasks() {

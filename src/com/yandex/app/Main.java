@@ -21,7 +21,7 @@ import java.util.Scanner;
 
 public class Main {
     public static Scanner scanner = new Scanner(System.in);
-    public static InMemoryTaskManager inMemoryTaskManager = (InMemoryTaskManager) Managers.getDefaultTaskManager();
+    public static InMemoryTaskManager inMemoryTaskManager; /*= (InMemoryTaskManager) Managers.getDefaultTaskManager();*/
 
     public static void main(String[] args) {
         String[] enumsProgress = {"NEW", "IN_PROGRESS", "DONE"};
@@ -49,12 +49,10 @@ public class Main {
                         "Произошла ошибка создания хранилища...");
             }
             fm = new FileBackedTaskManager(fileForSave);
+            inMemoryTaskManager = (InMemoryTaskManager) Managers.getDefaultTaskManager();
         } else {
             fm = FileBackedTaskManager.loadFromFile(fileForSave.toFile());
-
-            inMemoryTaskManager.setAllTasks(fm.getAllTasksInMap());
-            inMemoryTaskManager.setAllEpics(fm.getAllEpicsInMap());
-            inMemoryTaskManager.setAllSubtasks(fm.getAllSubtasksInMap());
+            inMemoryTaskManager = fm.getInMemoryTaskManager();
         }
 
         System.out.println("Добро пожаловать в Трекер Задач, в ваш персональный помощник!\n");
