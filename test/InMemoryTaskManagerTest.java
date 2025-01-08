@@ -12,7 +12,7 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest {
-    private static InMemoryTaskManager inMemoryTaskManager;// = new InMemoryTaskManager();
+    private static InMemoryTaskManager inMemoryTaskManager;//
     private static final Random random = new Random();
 
     @BeforeEach
@@ -235,10 +235,10 @@ class InMemoryTaskManagerTest {
     //в эпике не должны сохраняться удалённые подзадачи
     @Test
     void shouldDeleteIdOfDeletedSubtaskInEpic() {
-        inMemoryTaskManager.deleteOneSubtaskskByID(8);
-
         ArrayList<Integer> correctIds = inMemoryTaskManager.findEpicByID(4).getSubtasksIDs();
         correctIds.remove(1);
+
+        inMemoryTaskManager.deleteOneSubtaskskByID(8);
 
         ArrayList<Integer> checkedIds = inMemoryTaskManager.findEpicByID(4).getSubtasksIDs();
         assertArrayEquals(new ArrayList[]{correctIds}, new ArrayList[]{checkedIds});

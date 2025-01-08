@@ -4,18 +4,56 @@ import com.yandex.app.model.Epic;
 import com.yandex.app.model.Progress;
 import com.yandex.app.model.Subtask;
 import com.yandex.app.model.Task;
+import com.yandex.app.service.FileBackedTaskManager;
 import com.yandex.app.service.InMemoryTaskManager;
 import com.yandex.app.service.Managers;
+import com.yandex.app.service.exceptions.ManagerSaveException;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
     public static Scanner scanner = new Scanner(System.in);
-    public static InMemoryTaskManager inMemoryTaskManager = (InMemoryTaskManager) Managers.getDefaultTaskManager();
+    public static InMemoryTaskManager inMemoryTaskManager; /*= (InMemoryTaskManager) Managers.getDefaultTaskManager();*/
 
     public static void main(String[] args) {
         String[] enumsProgress = {"NEW", "IN_PROGRESS", "DONE"};
+
+        Path dirForSave = Paths.get("C:\\Users\\user\\IdeaProjects\\4sprintBeginningFinalTask\\java-kanban" +
+                "\\src\\com\\yandex\\app\\service\\storage");
+
+        Path fileForSave = Paths.get("C:\\Users\\user\\IdeaProjects\\4sprintBeginningFinalTask\\java-kanban" +
+                "\\src\\com\\yandex\\app\\service\\storage\\allTasks.txt");
+
+        FileBackedTaskManager fm;
+        if (!Files.exists(dirForSave)) {
+            try {
+                Files.createDirectory(dirForSave);
+                Files.createFile(fileForSave);
+                try (Writer writeNewStringInStorage = new FileWriter(fileForSave.toString(),
+                        StandardCharsets.UTF_8, true)) {
+                    writeNewStringInStorage.write("id,type,name,status,description,epic\n");
+                } catch (IOException e) {
+                    throw new ManagerSaveException("Приносим свои извинения, вы не должны были видеть это!" +
+                            "Произошла ошибка сохранения...");
+                }
+            } catch (IOException e) {
+                throw new ManagerSaveException("Приносим свои извинения, вы не должны были видеть это!" +
+                        "Произошла ошибка создания хранилища...");
+            }
+            fm = new FileBackedTaskManager(fileForSave);
+            inMemoryTaskManager = (InMemoryTaskManager) Managers.getDefaultTaskManager();
+        } else {
+            fm = FileBackedTaskManager.loadFromFile(fileForSave.toFile());
+            inMemoryTaskManager = fm.getInMemoryTaskManager();
+        }
 
         System.out.println("Добро пожаловать в Трекер Задач, в ваш персональный помощник!\n");
         String typeOfTask;
@@ -65,9 +103,13 @@ public class Main {
                     break;
                 case "2":
                     if (isTask) {
-                        System.out.println(inMemoryTaskManager.removeAllTasks());
+                        inMemoryTaskManager.removeAllTasks();
+                        fm.removeAllTasks();
+                        System.out.println("Список задач очищен.\n");
                     } else {
-                        System.out.println(inMemoryTaskManager.removeAllEpics());
+                        inMemoryTaskManager.removeAllEpics();
+                        fm.removeAllEpics();
+                        System.out.println("Список эпиков очищен.\n");
                     }
                     break;
                 case "3":
@@ -96,19 +138,19 @@ public class Main {
                     description = inputDescriptionOfTask();
 
                     if (isTask) {
-                        inMemoryTaskManager.saveNewTask(new Task(name, description, temporaryID));
+                        fm.saveNewTask(inMemoryTaskManager.saveNewTask(new Task(name, description, temporaryID)));
                     } else {
                         System.out.println("Сколько шагов до вашей цели?");
                         int amountSteps = checkNextInt();
 
                         Epic newEpic = new Epic(name, description, temporaryID);
-                        inMemoryTaskManager.saveNewEpic(newEpic);
+                        fm.saveNewEpic(inMemoryTaskManager.saveNewEpic(newEpic));
                         for (int i = 1; i <= amountSteps; i++) {
                             Subtask newSubtask = new Subtask(
                                     inputNameSubtaskOfEpic(), inputDescriptionSubtaskOfEpic(),
                                     temporaryID, newEpic.getId()
                             );
-                            inMemoryTaskManager.saveNewSubtask(newSubtask);
+                            fm.saveNewSubtask(inMemoryTaskManager.saveNewSubtask(newSubtask));
                         }
                     }
                     System.out.println("Успешно сохранено!\n");
@@ -120,128 +162,149 @@ public class Main {
                     isElementByIdSaved = inMemoryTaskManager.isTaskAddedByID(idForUpdate)
                             || inMemoryTaskManager.isEpicAddedByID(idForUpdate);
 
-                    if (isElementByIdSaved) {
-                        printMenuForUpdate();
-                        int choosingWhatToUpdate = checkNextInt();
+                    if (!isElementByIdSaved) {
+                        System.out.println("Не найдено задачи с таким id в вашем списке.\n");
+                        continue;
+                    }
 
-                        switch (choosingWhatToUpdate) {
-                            case 1:
+                    printMenuForUpdate();
+                    int choosingWhatToUpdate = checkNextInt();
+
+                    switch (choosingWhatToUpdate) {
+                        case 1:
+                            if (isTask && inMemoryTaskManager.isTaskAddedByID(idForUpdate)) {
+                                fm.updateTask(
+                                        inMemoryTaskManager.updateTask(
+                                                new Task(getNewValueForUpdate(),
+                                                        inMemoryTaskManager.findTaskByID(idForUpdate).getDescription(),
+                                                        idForUpdate
+                                                )
+                                        )
+                                );
+                                System.out.println(printMessageAboutSuccessfulFinishingOperation());
+                            } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
+                                fm.updateEpic(
+                                        inMemoryTaskManager.updateEpic(new Epic(
+                                                        getNewValueForUpdate(),
+                                                        inMemoryTaskManager.findEpicByID(idForUpdate).getDescription(),
+                                                        idForUpdate
+                                                )
+                                        )
+                                );
+                                System.out.println(printMessageAboutSuccessfulFinishingOperation());
+                            } else {
+                                System.out.println("Не найдено, введён неверный формат.\n");
+                            }
+                            break;
+                        case 2:
+                            if (isTask && inMemoryTaskManager.isTaskAddedByID(idForUpdate)) {
+                                fm.updateTask(
+                                        inMemoryTaskManager.updateTask(new Task(
+                                                        inMemoryTaskManager.findTaskByID(idForUpdate).getName(),
+                                                        getNewValueForUpdate(), idForUpdate
+                                                )
+                                        )
+                                );
+                                System.out.println(printMessageAboutSuccessfulFinishingOperation());
+                            } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
+                                fm.updateEpic(
+                                        inMemoryTaskManager.updateEpic(new Epic(
+                                                        inMemoryTaskManager.findEpicByID(idForUpdate).getName(),
+                                                        getNewValueForUpdate(), idForUpdate
+                                                )
+                                        )
+                                );
+                                System.out.println(printMessageAboutSuccessfulFinishingOperation());
+                            } else {
+                                System.out.println("Не найдено, введён неверный формат.\n");
+                            }
+                            break;
+                        case 3:
+                            printMenuForProgresses();
+                            System.out.println("Введите новое значение.");
+                            int indexOfNewProgStatus = checkNextInt();
+
+                            if (indexOfNewProgStatus >= 1 && indexOfNewProgStatus <= 3) {
+                                Progress newStatus = Progress.valueOf(enumsProgress[indexOfNewProgStatus - 1]);
+
                                 if (isTask && inMemoryTaskManager.isTaskAddedByID(idForUpdate)) {
-                                    System.out.println(inMemoryTaskManager.updateTask(new Task(
-                                                    getNewValueForUpdate(),
-                                                    inMemoryTaskManager.findTaskByID(idForUpdate).getDescription(),
-                                                    idForUpdate
-                                            ))
+                                    Task newTask = new Task(
+                                            inMemoryTaskManager.findTaskByID(idForUpdate).getName(),
+                                            inMemoryTaskManager.findTaskByID(idForUpdate).getDescription(),
+                                            idForUpdate
                                     );
-                                } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
-                                    System.out.println(inMemoryTaskManager.updateEpic(new Epic(
-                                                    getNewValueForUpdate(),
-                                                    inMemoryTaskManager.findEpicByID(idForUpdate).getDescription(),
-                                                    idForUpdate
-                                            ))
-                                    );
-                                } else {
-                                    System.out.println("Не найдено, введён неверный формат.\n");
-                                }
-                                break;
-                            case 2:
-                                if (isTask && inMemoryTaskManager.isTaskAddedByID(idForUpdate)) {
-                                    System.out.println(inMemoryTaskManager.updateTask(new Task(
-                                                    inMemoryTaskManager.findTaskByID(idForUpdate).getName(),
-                                                    getNewValueForUpdate(), idForUpdate
-                                            ))
-                                    );
-                                } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
-                                    System.out.println(inMemoryTaskManager.updateEpic(new Epic(
-                                                    inMemoryTaskManager.findEpicByID(idForUpdate).getName(),
-                                                    getNewValueForUpdate(), idForUpdate
-                                            ))
-                                    );
-                                } else {
-                                    System.out.println("Не найдено, введён неверный формат.\n");
-                                }
-                                break;
-                            case 3:
-                                printMenuForProgresses();
-                                System.out.println("Введите новое значение.");
-                                int indexOfNewProgStatus = checkNextInt();
+                                    newTask.setStatus(newStatus);
+                                    fm.updateTask(inMemoryTaskManager.updateTask(newTask));
 
-                                if (indexOfNewProgStatus >= 1 && indexOfNewProgStatus <= 3) {
-                                    Progress newStatus = Progress.valueOf(enumsProgress[indexOfNewProgStatus - 1]);
-
-                                    if (isTask && inMemoryTaskManager.isTaskAddedByID(idForUpdate)) {
-                                        Task newTask = new Task(
-                                                inMemoryTaskManager.findTaskByID(idForUpdate).getName(),
-                                                inMemoryTaskManager.findTaskByID(idForUpdate).getDescription(),
-                                                idForUpdate
-                                        );
-                                        newTask.setStatus(newStatus);
-                                        System.out.println(inMemoryTaskManager.updateTask(newTask));
-                                    } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
-                                        System.out.println("Введите id подзадачи, которую нужно сменить.");
-                                        int index = checkNextInt();
-                                        Epic epic = inMemoryTaskManager.findEpicByID(idForUpdate);
-                                        ArrayList<Integer> indexes = epic.getSubtasksIDs();
-
-                                        if (indexes.contains(index)) {
-                                            Subtask newSubtask = new Subtask(
-                                                    inMemoryTaskManager.findSubtaskByID(index).getName(),
-                                                    inMemoryTaskManager.findSubtaskByID(index).getDescription(),
-                                                    index, epic.getId()
-                                            );
-                                            newSubtask.setStatus(newStatus);
-                                            System.out.println(inMemoryTaskManager.updateSubtask(newSubtask));
-                                        } else {
-                                            System.out.println("Ошибка. Подзадачи с этим номером нет.\n");
-                                        }
-                                        System.out.println("Успешно сохранено!\n");
-                                    } else {
-                                        System.out.println("Не найдено, введён неверный формат.\n");
-                                    }
-                                } else {
-                                    System.out.println("Введите число от 1 до 3.\n");
-                                }
-                                break;
-                            case 4:
-                                if (isTask) {
-                                    System.out.println("Данная команда предназначена только для эпиков.\n");
+                                    System.out.println(printMessageAboutSuccessfulFinishingOperation());
                                 } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
                                     System.out.println("Введите id подзадачи, которую нужно сменить.");
                                     int index = checkNextInt();
-                                    System.out.println("Введите новые значения.");
-
                                     Epic epic = inMemoryTaskManager.findEpicByID(idForUpdate);
                                     ArrayList<Integer> indexes = epic.getSubtasksIDs();
 
                                     if (indexes.contains(index)) {
-                                        Subtask newSubtask = new Subtask(inputNameSubtaskOfEpic(),
-                                                inputDescriptionSubtaskOfEpic(), index, idForUpdate
+                                        Subtask newSubtask = new Subtask(
+                                                inMemoryTaskManager.findSubtaskByID(index).getName(),
+                                                inMemoryTaskManager.findSubtaskByID(index).getDescription(),
+                                                index, epic.getId()
                                         );
-                                        System.out.println(inMemoryTaskManager.updateSubtask(newSubtask));
+                                        newSubtask.setStatus(newStatus);
+                                        fm.updateSubtask(inMemoryTaskManager.updateSubtask(newSubtask));
+                                        System.out.println(printMessageAboutSuccessfulFinishingOperation());
                                     } else {
-                                        System.out.println("Ошибка. Подзадачи с этим id в этом эпике нет.\n");
+                                        System.out.println("Ошибка. Подзадачи с этим номером нет.\n");
                                     }
+                                    System.out.println("Успешно сохранено!\n");
                                 } else {
                                     System.out.println("Не найдено, введён неверный формат.\n");
                                 }
-                                break;
-                            default:
-                                System.out.println("Такой команды нет.\n");
-                                break;
-                        }
-                    } else {
-                        System.out.println("Не найдено задачи с таким id в вашем списке.\n");
+                            } else {
+                                System.out.println("Введите число от 1 до 3.\n");
+                            }
+                            break;
+                        case 4:
+                            if (isTask) {
+                                System.out.println("Данная команда предназначена только для эпиков.\n");
+                            } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
+                                System.out.println("Введите id подзадачи, которую нужно сменить.");
+                                int index = checkNextInt();
+                                System.out.println("Введите новые значения.");
+
+                                Epic epic = inMemoryTaskManager.findEpicByID(idForUpdate);
+                                ArrayList<Integer> indexes = epic.getSubtasksIDs();
+
+                                if (indexes.contains(index)) {
+                                    Subtask newSubtask = new Subtask(inputNameSubtaskOfEpic(),
+                                            inputDescriptionSubtaskOfEpic(), index, idForUpdate
+                                    );
+                                    fm.updateSubtask(inMemoryTaskManager.updateSubtask(newSubtask));
+                                    System.out.println(printMessageAboutSuccessfulFinishingOperation());
+                                } else {
+                                    System.out.println("Ошибка. Подзадачи с этим id в этом эпике нет.\n");
+                                }
+                            } else {
+                                System.out.println("Не найдено, введён неверный формат.\n");
+                            }
+                            break;
+                        default:
+                            System.out.println("Такой команды нет.\n");
+                            break;
                     }
                     break;
                 case "6":
                     System.out.println("Введите id элемента, который хотите удалить.");
                     int idForDelete = checkNextInt();
                     if (inMemoryTaskManager.isTaskAddedByID(idForDelete)) {
-                        System.out.println(inMemoryTaskManager.deleteOneTaskByID(idForDelete));
+                        inMemoryTaskManager.deleteOneTaskByID(idForDelete);
+                        fm.deleteOneTaskByID(idForDelete);
+                        System.out.println(printMessageAboutSuccessfulFinishingOperation());
                     } else if (inMemoryTaskManager.isEpicAddedByID(idForDelete)) {
-                        System.out.println(inMemoryTaskManager.deleteOneEpicByID(idForDelete));
+                        fm.deleteOneEpicByID(idForDelete);
+                        System.out.println(printMessageAboutSuccessfulFinishingOperation());
                     } else if (inMemoryTaskManager.isSubtaskAddedByID(idForDelete)) {
-                        System.out.println(inMemoryTaskManager.deleteOneSubtaskskByID(idForDelete));
+                        fm.deleteOneSubtaskskByID(idForDelete);
+                        System.out.println(printMessageAboutSuccessfulFinishingOperation());
                     } else {
                         System.out.println("Задачи с таким id нет в вашем списке.\n");
                     }
@@ -370,5 +433,9 @@ public class Main {
     public static String getNewValueForUpdate() {
         System.out.println("Введите новое значение.");
         return scanner.nextLine();
+    }
+
+    public static String printMessageAboutSuccessfulFinishingOperation() {
+        return "Выполнено успешно" + "\n";
     }
 }
