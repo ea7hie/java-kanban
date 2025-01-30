@@ -114,8 +114,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeAllTasks() {
         allTasks.clear();
-        sortedTasks = sortedTasks.stream().
-                filter(task -> task.getClass().toString().endsWith("Subtask"))
+        sortedTasks = sortedTasks.stream()
+                .filter(task -> task.getClass().toString().endsWith("Subtask"))
                 .collect(Collectors.toSet());
         inMemoryHistoryManager.removeAllTasksInViewedTasks();
     }
@@ -134,8 +134,8 @@ public class InMemoryTaskManager implements TaskManager {
             epic.setStatus(Progress.NEW);
         }
         allSubtasks.clear();
-        sortedTasks = sortedTasks.stream().
-                filter(task -> !task.getClass().toString().endsWith("Subtask"))
+        sortedTasks = sortedTasks.stream()
+                .filter(task -> !task.getClass().toString().endsWith("Subtask"))
                 .collect(Collectors.toSet());
     }
 
