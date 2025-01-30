@@ -21,7 +21,7 @@ import java.util.Scanner;
 
 public class Main {
     public static Scanner scanner = new Scanner(System.in);
-    public static InMemoryTaskManager inMemoryTaskManager; /*= (InMemoryTaskManager) Managers.getDefaultTaskManager();*/
+    public static InMemoryTaskManager inMemoryTaskManager;
 
     public static void main(String[] args) {
         String[] enumsProgress = {"NEW", "IN_PROGRESS", "DONE"};
@@ -88,6 +88,8 @@ public class Main {
             String cmd = scanner.next();//выбор пункта меня "что ты хочешь сделать"
             String name;
             String description;
+            String startTime;
+            int duration;
             int temporaryID = -1;
             boolean isElementByIdSaved;
 
@@ -138,19 +140,46 @@ public class Main {
                     description = inputDescriptionOfTask();
 
                     if (isTask) {
-                        fm.saveNewTask(inMemoryTaskManager.saveNewTask(new Task(name, description, temporaryID)));
+                        startTime = inputStartTimeOfTask();
+                        duration = inputDurationOfTask();
+
+                        if (inMemoryTaskManager.isTimeOverlap(startTime, duration)) {
+                            System.out.println("Ошибка сохранения! На это время у вас запланировано кое-что другое!\n");
+                            continue;
+                        }
+
+                        fm.saveNewTask(inMemoryTaskManager.saveNewTask(
+                                new Task(name, description, temporaryID, duration, startTime))
+                        );
                     } else {
                         System.out.println("Сколько шагов до вашей цели?");
                         int amountSteps = checkNextInt();
+                        boolean isNeedDeleteNewEpic = false;
 
                         Epic newEpic = new Epic(name, description, temporaryID);
                         fm.saveNewEpic(inMemoryTaskManager.saveNewEpic(newEpic));
                         for (int i = 1; i <= amountSteps; i++) {
+                            startTime = inputStartTimeOfTask();
+                            duration = inputDurationOfTask();
+
+                            if (inMemoryTaskManager.isTimeOverlap(startTime, duration)) {
+                                System.out.println(
+                                        "Ошибка сохранения! На это время у вас запланировано кое-что другое!\n");
+                                isNeedDeleteNewEpic = true;
+                                break;
+                            }
+
                             Subtask newSubtask = new Subtask(
                                     inputNameSubtaskOfEpic(), inputDescriptionSubtaskOfEpic(),
-                                    temporaryID, newEpic.getId()
+                                    temporaryID, newEpic.getId(), duration, startTime
                             );
                             fm.saveNewSubtask(inMemoryTaskManager.saveNewSubtask(newSubtask));
+                        }
+
+                        if (isNeedDeleteNewEpic) {
+                            fm.deleteOneEpicByID(newEpic.getId());
+                            inMemoryTaskManager.deleteOneEpicByID(newEpic.getId());
+                            continue;
                         }
                     }
                     System.out.println("Успешно сохранено!\n");
@@ -167,6 +196,19 @@ public class Main {
                         continue;
                     }
 
+                    String oldStartTime;
+                    int oldDuration;
+                    if (inMemoryTaskManager.isTaskAddedByID(idForUpdate)) {
+                        oldStartTime = inMemoryTaskManager.findTaskByID(idForUpdate).getStartTime();
+                        oldDuration = inMemoryTaskManager.findTaskByID(idForUpdate).getDuration();
+                    } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
+                        oldStartTime = inMemoryTaskManager.findEpicByID(idForUpdate).getStartTime();
+                        oldDuration = inMemoryTaskManager.findEpicByID(idForUpdate).getDuration();
+                    } else {
+                        oldStartTime = inMemoryTaskManager.findSubtaskByID(idForUpdate).getStartTime();
+                        oldDuration = inMemoryTaskManager.findSubtaskByID(idForUpdate).getDuration();
+                    }
+
                     printMenuForUpdate();
                     int choosingWhatToUpdate = checkNextInt();
 
@@ -177,13 +219,13 @@ public class Main {
                                         inMemoryTaskManager.updateTask(
                                                 new Task(getNewValueForUpdate(),
                                                         inMemoryTaskManager.findTaskByID(idForUpdate).getDescription(),
-                                                        idForUpdate
+                                                        idForUpdate, oldDuration, oldStartTime
                                                 )
                                         )
                                 );
                                 System.out.println(printMessageAboutSuccessfulFinishingOperation());
                             } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
-                                fm.updateEpic(
+                                Epic updatedEpic = fm.updateEpic(
                                         inMemoryTaskManager.updateEpic(new Epic(
                                                         getNewValueForUpdate(),
                                                         inMemoryTaskManager.findEpicByID(idForUpdate).getDescription(),
@@ -191,6 +233,8 @@ public class Main {
                                                 )
                                         )
                                 );
+                                updatedEpic.setStartTime(oldStartTime);
+                                updatedEpic.setDuration(oldDuration);
                                 System.out.println(printMessageAboutSuccessfulFinishingOperation());
                             } else {
                                 System.out.println("Не найдено, введён неверный формат.\n");
@@ -201,19 +245,21 @@ public class Main {
                                 fm.updateTask(
                                         inMemoryTaskManager.updateTask(new Task(
                                                         inMemoryTaskManager.findTaskByID(idForUpdate).getName(),
-                                                        getNewValueForUpdate(), idForUpdate
+                                                        getNewValueForUpdate(), idForUpdate, oldDuration, oldStartTime
                                                 )
                                         )
                                 );
                                 System.out.println(printMessageAboutSuccessfulFinishingOperation());
                             } else if (inMemoryTaskManager.isEpicAddedByID(idForUpdate)) {
-                                fm.updateEpic(
+                                Epic updatedEpic = fm.updateEpic(
                                         inMemoryTaskManager.updateEpic(new Epic(
                                                         inMemoryTaskManager.findEpicByID(idForUpdate).getName(),
                                                         getNewValueForUpdate(), idForUpdate
                                                 )
                                         )
                                 );
+                                updatedEpic.setStartTime(oldStartTime);
+                                updatedEpic.setDuration(oldDuration);
                                 System.out.println(printMessageAboutSuccessfulFinishingOperation());
                             } else {
                                 System.out.println("Не найдено, введён неверный формат.\n");
@@ -231,7 +277,7 @@ public class Main {
                                     Task newTask = new Task(
                                             inMemoryTaskManager.findTaskByID(idForUpdate).getName(),
                                             inMemoryTaskManager.findTaskByID(idForUpdate).getDescription(),
-                                            idForUpdate
+                                            idForUpdate, oldDuration, oldStartTime
                                     );
                                     newTask.setStatus(newStatus);
                                     fm.updateTask(inMemoryTaskManager.updateTask(newTask));
@@ -244,10 +290,13 @@ public class Main {
                                     ArrayList<Integer> indexes = epic.getSubtasksIDs();
 
                                     if (indexes.contains(index)) {
+                                        Subtask oldSubtask = inMemoryTaskManager.findSubtaskByID(index);
+                                        String oldStartTimeOfOldSubtask = oldSubtask.getStartTime();
+                                        int oldDurationOfOldSubtask = oldSubtask.getDuration();
+
                                         Subtask newSubtask = new Subtask(
-                                                inMemoryTaskManager.findSubtaskByID(index).getName(),
-                                                inMemoryTaskManager.findSubtaskByID(index).getDescription(),
-                                                index, epic.getId()
+                                                oldSubtask.getName(), oldSubtask.getDescription(), index, epic.getId(),
+                                                oldDurationOfOldSubtask, oldStartTimeOfOldSubtask
                                         );
                                         newSubtask.setStatus(newStatus);
                                         fm.updateSubtask(inMemoryTaskManager.updateSubtask(newSubtask));
@@ -275,8 +324,13 @@ public class Main {
                                 ArrayList<Integer> indexes = epic.getSubtasksIDs();
 
                                 if (indexes.contains(index)) {
+                                    Subtask oldSubtask = inMemoryTaskManager.findSubtaskByID(index);
+                                    String oldStartTimeOfOldSubtask = oldSubtask.getStartTime();
+                                    int oldDurationOfOldSubtask = oldSubtask.getDuration();
+
                                     Subtask newSubtask = new Subtask(inputNameSubtaskOfEpic(),
-                                            inputDescriptionSubtaskOfEpic(), index, idForUpdate
+                                            inputDescriptionSubtaskOfEpic(), index, idForUpdate,
+                                            oldDurationOfOldSubtask, oldStartTimeOfOldSubtask
                                     );
                                     fm.updateSubtask(inMemoryTaskManager.updateSubtask(newSubtask));
                                     System.out.println(printMessageAboutSuccessfulFinishingOperation());
@@ -313,6 +367,13 @@ public class Main {
                     System.out.println(inMemoryTaskManager.showListViewedTasks());
                     break;
                 case "8":
+                    if (inMemoryTaskManager.getPrioritizedTasks().isEmpty()) {
+                        System.out.println("Список задач пуст.\n");
+                    } else {
+                        System.out.println(inMemoryTaskManager.getPrioritizedTasks());
+                    }
+                    break;
+                case "9":
                     System.out.println("Введите id эпика, который хотите посмотреть.");
                     int idForViewEpic = checkNextInt();
                     if (inMemoryTaskManager.isEpicAddedByID(idForViewEpic)) {
@@ -330,6 +391,7 @@ public class Main {
         }
     }
 
+    //вывод информации
     public static void printMenuOfTypes() {
         System.out.println("С каким видом задачи хотите работать?");
         System.out.println("1 - Задача (одно действие для достижения результата),");
@@ -349,10 +411,11 @@ public class Main {
         System.out.println("5 - изменить задачу по её id");
         System.out.println("6 - удалить задачу по её id");
         System.out.println("7 - посмотреть список просмотренных задач");
+        System.out.println("8 - посмотреть список отсортированных по приоритету задач");
     }
 
     public static void printMenuForEpic() {
-        System.out.println("8 - посмотреть все задачи эпика по его id");
+        System.out.println("9 - посмотреть все задачи эпика по его id");
     }
 
     public static void printMenuForUpdate() {
@@ -396,6 +459,16 @@ public class Main {
         }
     }
 
+    public static String getNewValueForUpdate() {
+        System.out.println("Введите новое значение.");
+        return scanner.nextLine();
+    }
+
+    public static String printMessageAboutSuccessfulFinishingOperation() {
+        return "Выполнено успешно" + "\n";
+    }
+
+    //ввод данных
     public static String inputNameOfTask() {
         scanner.nextLine();
         System.out.println("Введите название вашей задачи (конечный результат, цель)");
@@ -417,6 +490,79 @@ public class Main {
         return scanner.nextLine();
     }
 
+    public static String inputStartTimeOfTask() {
+        System.out.println("Ввод даты и времени начала выполнения вашей задачи.");
+
+        int yearOfStartTime = inputYearOfStartTime();
+        int monthOfStartTime = inputMonthOfStartTime();
+        int dayOfStartTime = inputDayOfStartTime(monthOfStartTime, yearOfStartTime);
+        int hourOfStartTime = inputHourOfStartTime();
+        int minuteOfStartTime = inputMinuteOfStartTime();
+
+        return (String.valueOf(dayOfStartTime).length() == 1 ? "0" + dayOfStartTime : dayOfStartTime)
+                + "." + (String.valueOf(monthOfStartTime).length() == 1 ? "0" + monthOfStartTime : monthOfStartTime)
+                + "." + yearOfStartTime + "; "
+                + (String.valueOf(hourOfStartTime).length() == 1 ? "0" + hourOfStartTime : hourOfStartTime)
+                + ":" + (String.valueOf(minuteOfStartTime).length() == 1 ? "0" + minuteOfStartTime : minuteOfStartTime);
+    }
+
+    public static int inputYearOfStartTime() {
+        int yearOfStartTime;
+        do {
+            System.out.println("Введите год (гггг)");
+            yearOfStartTime = checkNextInt();
+        } while (String.valueOf(yearOfStartTime).length() != 4);
+
+        return yearOfStartTime;
+    }
+
+    public static int inputMonthOfStartTime() {
+        int monthOfStartTime;
+        do {
+            System.out.println("Введите месяц (мм)");
+            monthOfStartTime = checkNextInt();
+        } while (monthOfStartTime < 1 || monthOfStartTime > 12);
+        return monthOfStartTime;
+    }
+
+    public static int inputDayOfStartTime(int month, int year) {
+        int[] daysAtMonth = {-1, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+        int dayOfStartTime;
+        do {
+            System.out.println("Введите число (дд)");
+            dayOfStartTime = checkNextInt();
+        } while (dayOfStartTime < 0 || dayOfStartTime > daysAtMonth[month]);
+
+        if (month == 2 && year % 4 != 0 && dayOfStartTime == 29) {
+            System.out.println("В феврале " + year + " 28 дней!");
+            dayOfStartTime = inputDayOfStartTime(month, year);
+        }
+        return dayOfStartTime;
+    }
+
+    public static int inputHourOfStartTime() {
+        int hourOfStartTime;
+        do {
+            System.out.println("Введите час (чч)");
+            hourOfStartTime = checkNextInt();
+        } while (hourOfStartTime < 0 || hourOfStartTime > 23);
+        return hourOfStartTime;
+    }
+
+    public static int inputMinuteOfStartTime() {
+        int minuteOfStartTime;
+        do {
+            System.out.println("Введите минуты (мм)");
+            minuteOfStartTime = checkNextInt();
+        } while (minuteOfStartTime < 0 || minuteOfStartTime > 59);
+        return minuteOfStartTime;
+    }
+
+    public static int inputDurationOfTask() {
+        System.out.println("Введите продолжительность вашей задачи (в минутах)");
+        return checkNextInt();
+    }
+
     public static int checkNextInt() {
         int number;
         while (true) {
@@ -428,14 +574,5 @@ public class Main {
             System.out.println("Введено не число. Повторите ввод.\n");
             scanner.nextLine();
         }
-    }
-
-    public static String getNewValueForUpdate() {
-        System.out.println("Введите новое значение.");
-        return scanner.nextLine();
-    }
-
-    public static String printMessageAboutSuccessfulFinishingOperation() {
-        return "Выполнено успешно" + "\n";
     }
 }

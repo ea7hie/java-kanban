@@ -3,8 +3,8 @@ package com.yandex.app.model;
 public class Subtask extends Task {
     private int idOfSubtaskEpic;
 
-    public Subtask(String name, String description, int id, int idOfSubtaskEpic) {
-        super(name, description, id);
+    public Subtask(String name, String description, int id, int idOfSubtaskEpic, int duration, String startTime) {
+        super(name, description, id, duration, startTime);
         this.idOfSubtaskEpic = idOfSubtaskEpic;
     }
 
@@ -19,7 +19,9 @@ public class Subtask extends Task {
     @Override
     public String toString() {
         return " '" + this.getName() + "'" + ", описание: " + this.getDescription() + ", id=" + this.getId()
-                + ", статус прогресса этой подзадачи: "
-                + this.getStatus() + "\n";
+                + ", статус прогресса этой подзадачи: " + this.getStatus() +
+                ", \nначало выполнения этой подзадачи: " + getStartTime() +
+                ", \nпродолжительность: " + getDuration() + "мин." +
+                ", \nконец выполнения этой подзадачи: " + getEndTime() + "\n";
     }
 }

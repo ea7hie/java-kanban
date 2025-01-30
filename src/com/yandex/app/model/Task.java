@@ -1,17 +1,26 @@
 package com.yandex.app.model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class Task {
+    public static final DateTimeFormatter FORMAT_DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy; HH:mm");
+
     private String name;
     private String description;
     private Integer id;
     private Progress status = Progress.NEW;
+    private Duration duration;
+    private LocalDateTime startTime;
 
-    public Task(String name, String description, int id) {
+    public Task(String name, String description, int id, int duration, String startTime) {
         this.name = name;
         this.description = description;
         this.id = id;
+        this.duration = Duration.ofMinutes(duration);
+        this.startTime = LocalDateTime.parse(startTime, FORMAT_DATE);
     }
 
     //геттеры
@@ -31,6 +40,18 @@ public class Task {
         return status;
     }
 
+    public int getDuration() {
+        return (int) duration.toMinutes();
+    }
+
+    public String getStartTime() {
+        return startTime.format(FORMAT_DATE);
+    }
+
+    public String getEndTime() {
+        return startTime.plus(duration).format(FORMAT_DATE);
+    }
+
     //сеттеры
     public void setName(String name) {
         this.name = name;
@@ -46,6 +67,14 @@ public class Task {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = Duration.ofMinutes(duration);
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = LocalDateTime.parse(startTime, FORMAT_DATE);
     }
 
     //переопределения
@@ -86,9 +115,13 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Задача '" + name + "'" +
+        return "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n" +
+                "Задача '" + name + "'" +
                 ", \nописание: '" + description + "'" +
                 ", \nid=" + id +
-                ", \nстатус прогресса: " + status + "\n" + "\n";
+                ", \nстатус прогресса: " + status +
+                ", \nначало: " + getStartTime() +
+                ", \nпродолжительность: " + duration.toMinutes() + "мин." +
+                ", \nконец: " + getEndTime() + "\n" + "\n";
     }
 }
