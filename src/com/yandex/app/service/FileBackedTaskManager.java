@@ -139,7 +139,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 if (Tasks.valueOf(type) == Tasks.TASK) {
                     Task curTaskInTask = fromStringToTask(curTaskInString);
                     allTasks.put(curTaskInTask.getId(), curTaskInTask);
-                    sortedTasks.add(curTaskInTask);
+                    inMemoryTaskManager.sortedTasks.add(curTaskInTask);
                     inMemoryTaskManager.allTasks.put(curTaskInTask.getId(), curTaskInTask);
                 } else if (Tasks.valueOf(type) == Tasks.EPIC) {
                     Epic curEpicInEpic = (Epic) fromStringToTask(curTaskInString);
@@ -148,7 +148,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 } else {
                     Subtask curSubtaskInSubtask = (Subtask) fromStringToTask(curTaskInString);
                     allSubtasks.put(curSubtaskInSubtask.getId(), curSubtaskInSubtask);
-                    sortedTasks.add(curSubtaskInSubtask);
+                    inMemoryTaskManager.sortedTasks.add(curSubtaskInSubtask);
                     inMemoryTaskManager.allSubtasks.put(curSubtaskInSubtask.getId(), curSubtaskInSubtask);
                 }
             }
@@ -157,8 +157,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             for (Subtask subtask : allSubtasks.values()) {
                 allEpics.get(subtask.getIdOfSubtaskEpic()).saveNewSubtaskIDs(subtask.getId());
             }
-
-            inMemoryTaskManager.setSortedTasks(sortedTasks);
         } catch (IOException e) {
             throw new ManagerSaveException("Приносим свои извинения, вы не должны были видеть это!" +
                     "Произошла ошибка обновления списка хранилища при загрузке из файла...");

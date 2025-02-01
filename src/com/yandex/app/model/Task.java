@@ -7,6 +7,10 @@ import java.util.Objects;
 
 public class Task {
     public static final DateTimeFormatter FORMAT_DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy; HH:mm");
+    public static final String NEW_LINE = System.lineSeparator();
+    protected static final String HEADER_OF_TASK = "* * * * * * * * * * * * * * * * * * * * * * * * * * * ";
+    protected static final String defaultStartTime = "01.01.0001; 00:00";
+    protected static final int defaultDuration = -1;
 
     private String name;
     private String description;
@@ -115,13 +119,10 @@ public class Task {
 
     @Override
     public String toString() {
-        return "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n" +
-                "Задача '" + name + "'" +
-                ", \nописание: '" + description + "'" +
-                ", \nid=" + id +
-                ", \nстатус прогресса: " + status +
-                ", \nначало: " + getStartTime() +
-                ", \nпродолжительность: " + duration.toMinutes() + "мин." +
-                ", \nконец: " + getEndTime() + "\n" + "\n";
+        return String.format("%S%S%SЗадача '%s', %sописание: '%s', %sid=%d, %sстатус прогресса: %s, %s" +
+                        "начало: %s, %sпродолжительность: %s мин, %sконец выполнения эпика: %s%s%s",
+                HEADER_OF_TASK, HEADER_OF_TASK, NEW_LINE, this.getName(), NEW_LINE, this.getDescription(), NEW_LINE,
+                this.getId(), NEW_LINE, this.getStatus(), NEW_LINE, this.getStartTime(), NEW_LINE, this.getDuration(),
+                NEW_LINE, this.getEndTime(), NEW_LINE, NEW_LINE);
     }
 }

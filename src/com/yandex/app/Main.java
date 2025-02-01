@@ -26,11 +26,8 @@ public class Main {
     public static void main(String[] args) {
         String[] enumsProgress = {"NEW", "IN_PROGRESS", "DONE"};
 
-        Path dirForSave = Paths.get("C:\\Users\\user\\IdeaProjects\\4sprintBeginningFinalTask\\java-kanban" +
-                "\\src\\com\\yandex\\app\\service\\storage");
-
-        Path fileForSave = Paths.get("C:\\Users\\user\\IdeaProjects\\4sprintBeginningFinalTask\\java-kanban" +
-                "\\src\\com\\yandex\\app\\service\\storage\\allTasks.txt");
+        Path dirForSave = Paths.get("java-kanban\\src\\com\\yandex\\app\\service\\storage");
+        Path fileForSave = dirForSave.resolve("allTasks.txt");
 
         FileBackedTaskManager fm;
         if (!Files.exists(dirForSave)) {

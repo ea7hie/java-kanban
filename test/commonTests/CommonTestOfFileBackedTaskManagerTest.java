@@ -24,10 +24,9 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CommonTestOfFileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
-    private static final Path fileForSave = Paths.get("C:\\Users\\user\\IdeaProjects\\4sprintBeginningFinalTask" +
-            "\\java-kanban\\test\\commonTests\\storage\\allTasks.txt");
-    private static final Path dirForSave = Paths.get("C:\\Users\\user\\IdeaProjects\\4sprintBeginningFinalTask\\" +
-            "java-kanban\\test\\commonTests\\storage");
+    private static final Path dirForSave = Paths.get("java-kanban\\src\\com\\yandex\\app\\service\\storage");
+    private static final Path fileForSave = dirForSave.resolve("allTasks.txt");
+
     private static FileBackedTaskManager fm;
     private static InMemoryTaskManager inMemoryTaskManager;
 

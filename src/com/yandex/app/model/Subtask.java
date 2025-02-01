@@ -2,6 +2,7 @@ package com.yandex.app.model;
 
 public class Subtask extends Task {
     private int idOfSubtaskEpic;
+    static final String FOOTER_OF_SUBTASK = "- - - - - - - - - - - - - - - - - - - - - - - - - - - ";
 
     public Subtask(String name, String description, int id, int idOfSubtaskEpic, int duration, String startTime) {
         super(name, description, id, duration, startTime);
@@ -18,10 +19,11 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return " '" + this.getName() + "'" + ", описание: " + this.getDescription() + ", id=" + this.getId()
-                + ", статус прогресса этой подзадачи: " + this.getStatus() +
-                ", \nначало выполнения этой подзадачи: " + getStartTime() +
-                ", \nпродолжительность: " + getDuration() + "мин." +
-                ", \nконец выполнения этой подзадачи: " + getEndTime() + "\n";
+        return String.format(" '%s', %sописание: '%s', %sid=%d, %sстатус прогресса всего эпика: %s, %s" +
+                        "начало выполнения этой подзадачи: %s, %sпродолжительность: %s мин, " +
+                        "%sконец выполнения этой подзадачи: %s%s%s%s",
+                this.getName(), NEW_LINE, this.getDescription(), NEW_LINE, this.getId(), NEW_LINE, this.getStatus(),
+                NEW_LINE, this.getStartTime(), NEW_LINE, this.getDuration(), NEW_LINE, this.getEndTime(), NEW_LINE,
+                FOOTER_OF_SUBTASK, NEW_LINE);
     }
 }

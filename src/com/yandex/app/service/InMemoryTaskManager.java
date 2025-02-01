@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.yandex.app.model.Task.FORMAT_DATE;
+import static com.yandex.app.model.Task.NEW_LINE;
 
 public class InMemoryTaskManager implements TaskManager {
     private final InMemoryHistoryManager inMemoryHistoryManager = (InMemoryHistoryManager) Managers.getDefaultHistory();
@@ -36,11 +37,6 @@ public class InMemoryTaskManager implements TaskManager {
         allIDs.addAll(allTasks.keySet());
         allIDs.addAll(allEpics.keySet());
         allIDs.addAll(allSubtasks.keySet());
-    }
-
-    //сеттеры
-    public void setSortedTasks(Set<Task> sortedTasks) {
-        this.sortedTasks = sortedTasks;
     }
 
     //получить что-то (геттеры)
@@ -76,11 +72,9 @@ public class InMemoryTaskManager implements TaskManager {
         String fullDescription = "";
         for (int i = 0; i < allSubtasksInEpic.size(); i++) {
             Subtask currentSubtask = allSubtasksInEpic.get(i);
-            fullDescription = fullDescription
-                    + " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
-                    + "Подзадача №" + (i + 1) + currentSubtask.toString();
+            fullDescription = fullDescription + "Подзадача №" + (i + 1) + currentSubtask.toString();
         }
-        return fullDescription + "\n";
+        return fullDescription + NEW_LINE;
     }
 
     public String getPrioritizedTasks() {
@@ -115,7 +109,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void removeAllTasks() {
         allTasks.clear();
         sortedTasks = sortedTasks.stream()
-                .filter(task -> task.getClass().toString().endsWith("Subtask"))
+                .filter(task -> task.getClass().toString().equals(Subtask.class.toString()))
                 .collect(Collectors.toSet());
         inMemoryHistoryManager.removeAllTasksInViewedTasks();
     }
@@ -135,7 +129,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
         allSubtasks.clear();
         sortedTasks = sortedTasks.stream()
-                .filter(task -> !task.getClass().toString().endsWith("Subtask"))
+                .filter(task -> task.getClass().toString().equals(Task.class.toString()))
                 .collect(Collectors.toSet());
     }
 
