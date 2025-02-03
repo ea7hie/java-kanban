@@ -39,16 +39,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         if (Tasks.valueOf(type) == Tasks.SUBTASK) {
             Subtask subtask = (Subtask) task;
             String[] infoAboutTask = {String.valueOf(subtask.getId()),
-                    Tasks.valueOf(type).toString(), subtask.getName(),
-                    subtask.getStatus().toString(), subtask.getDescription(),
-                    String.valueOf(subtask.getIdOfSubtaskEpic())
+                    Tasks.valueOf(type).toString(), subtask.getName(), subtask.getStatus().toString(),
+                    subtask.getDescription(), String.valueOf(subtask.getIdOfSubtaskEpic()), subtask.getStartTime(),
+                    String.valueOf(subtask.getDuration())
+            };
+            return String.join(",", infoAboutTask);
+        } else if (Tasks.valueOf(type) == Tasks.EPIC) {
+            String[] infoAboutTask = {String.valueOf(task.getId()), Tasks.valueOf(type).toString(),
+                    task.getName(), task.getStatus().toString(), task.getDescription(), task.getStartTime(),
+                    String.valueOf(task.getDuration()), ((Epic) task).getEndTimeForEpic()
             };
             return String.join(",", infoAboutTask);
         }
 
-        String[] infoAboutTask = {String.valueOf(task.getId()),
-                Tasks.valueOf(type).toString(),
-                task.getName(), task.getStatus().toString(), task.getDescription()
+        String[] infoAboutTask = {String.valueOf(task.getId()), Tasks.valueOf(type).toString(),
+                task.getName(), task.getStatus().toString(), task.getDescription(), task.getStartTime(),
+                String.valueOf(task.getDuration())
         };
         return String.join(",", infoAboutTask);
     }
@@ -58,7 +64,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         switch (Tasks.valueOf(infoAboutTask[1])) {
             case Tasks.TASK:
-                Task newTask = new Task(infoAboutTask[2], infoAboutTask[4], -1);
+                Task newTask = new Task(infoAboutTask[2], infoAboutTask[4], -1,
+                        Integer.parseInt(infoAboutTask[6]), infoAboutTask[5]);
                 newTask.setId(Integer.valueOf(infoAboutTask[0]));
                 newTask.setStatus(Progress.valueOf(infoAboutTask[3]));
                 return newTask;
@@ -66,9 +73,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 Epic newEpic = new Epic(infoAboutTask[2], infoAboutTask[4], -1);
                 newEpic.setId(Integer.valueOf(infoAboutTask[0]));
                 newEpic.setStatus(Progress.valueOf(infoAboutTask[3]));
+                newEpic.setDuration(Integer.parseInt(infoAboutTask[6]));
+                newEpic.setStartTime(infoAboutTask[5]);
+                newEpic.setEndTime(infoAboutTask[7]);
                 return newEpic;
         }
-        Subtask newSubtask = new Subtask(infoAboutTask[2], infoAboutTask[4], -1, -1);
+        Subtask newSubtask = new Subtask(infoAboutTask[2], infoAboutTask[4], -1, -1,
+                Integer.parseInt(infoAboutTask[7]), infoAboutTask[6]);
         newSubtask.setId(Integer.valueOf(infoAboutTask[0]));
         newSubtask.setStatus(Progress.valueOf(infoAboutTask[3]));
         newSubtask.setIdOfSubtaskEpic(Integer.parseInt(infoAboutTask[5]));
@@ -76,7 +87,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     //очистка файла-хранилища
-    private void clearFile() {
+    public void clearFile() {
         try {
             Files.delete(fileForSaving);
         } catch (IOException e) {
@@ -128,6 +139,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 if (Tasks.valueOf(type) == Tasks.TASK) {
                     Task curTaskInTask = fromStringToTask(curTaskInString);
                     allTasks.put(curTaskInTask.getId(), curTaskInTask);
+                    inMemoryTaskManager.sortedTasks.add(curTaskInTask);
                     inMemoryTaskManager.allTasks.put(curTaskInTask.getId(), curTaskInTask);
                 } else if (Tasks.valueOf(type) == Tasks.EPIC) {
                     Epic curEpicInEpic = (Epic) fromStringToTask(curTaskInString);
@@ -136,6 +148,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 } else {
                     Subtask curSubtaskInSubtask = (Subtask) fromStringToTask(curTaskInString);
                     allSubtasks.put(curSubtaskInSubtask.getId(), curSubtaskInSubtask);
+                    inMemoryTaskManager.sortedTasks.add(curSubtaskInSubtask);
                     inMemoryTaskManager.allSubtasks.put(curSubtaskInSubtask.getId(), curSubtaskInSubtask);
                 }
             }
@@ -210,7 +223,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public Epic saveNewEpic(Epic epic) {
-        super.saveNewEpic(epic);
+        allEpics.put(epic.getId(), epic);
         save();
         return epic;
     }
