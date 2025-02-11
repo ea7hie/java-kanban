@@ -1,4 +1,4 @@
-package commonTests;
+package managersTests.commonTests;
 
 import com.yandex.app.service.interfaces.TaskManager;
 import org.junit.jupiter.api.Test;

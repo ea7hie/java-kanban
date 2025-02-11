@@ -113,7 +113,7 @@ public class ScheduleHandlerGetEpics extends BaseHttpHandler implements HttpHand
                     epic.setName(name);
                     epic.setDescription(description);
                     fm.updateEpic(inMemoryTaskManager.updateEpic(epic));
-                    sendText(httpExchange, "Успешно обновлено");
+                    sendText(httpExchange, "Успешно обновлено!");
                 } else {
                     sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", id));
                 }
@@ -133,7 +133,7 @@ public class ScheduleHandlerGetEpics extends BaseHttpHandler implements HttpHand
                 }
 
                 if (inMemoryTaskManager.isEpicAddedByID(idForDelete)) {
-                    fm.deleteOneEpicByID(idForDelete);
+                    inMemoryTaskManager.deleteOneEpicByID(idForDelete);
                     sendText(httpExchange, "Успешно удалено!");
                 } else {
                     sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", idForDelete));

@@ -116,7 +116,7 @@ public class ScheduleHandlerGetTasks extends BaseHttpHandler implements HttpHand
                     t.setId(id);
                     t.setStatus(progress);
                     fm.updateTask(inMemoryTaskManager.updateTask(t));
-                    sendText(httpExchange, "Успешно обновлено");
+                    sendText(httpExchange, "Успешно обновлено!");
                 } else {
                     sendNotFound(httpExchange, String.format("Задачи с заданным id (%d) не найдено.", id));
                 }

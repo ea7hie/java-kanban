@@ -1,37 +1,40 @@
-package com.yandex.app;
+package HttpServerTests;
 
-import com.sun.net.httpserver.HttpServer;
+import com.yandex.app.HttpTaskServer;
 import com.yandex.app.service.FileBackedTaskManager;
 import com.yandex.app.service.InMemoryTaskManager;
 import com.yandex.app.service.Managers;
 import com.yandex.app.service.exceptions.ManagerSaveException;
 import com.yandex.app.service.exceptions.ServersException;
-import com.yandex.app.service.httpHandlers.*;
+import com.yandex.app.service.httpHandlers.ScheduleHandlerGetPrioritized;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class HttpTaskServer {
-    public static HttpServer httpServer;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class HttpTaskServerGetPrioritizedTest {
+    private static final HttpClient client = HttpClient.newHttpClient();
+    private static final URI uri = URI.create("http://localhost:8080/schedule/prioritized");
+    private static final HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
     private static InMemoryTaskManager inMemoryTaskManager;
 
-    public HttpTaskServer() {
-        try {
-            httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
-        } catch (IOException e) {
-            throw new ServersException("Приносим свои извинения, вы не должны были видеть это!\n" +
-                    "Произошла ошибка создания сервера...");
-        }
-    }
-
-    public static void main(String[] args) {
-        Path dirForSave = Paths.get("src/com/yandex/app/service/storage");
+    @BeforeAll
+    static void beforeAll() {
+        Path dirForSave = Paths.get("test/HttpServerTests/storage");
         Path fileForSave = dirForSave.resolve("allTasks.txt");
 
         FileBackedTaskManager fm;
@@ -57,27 +60,36 @@ public class HttpTaskServer {
             inMemoryTaskManager = fm.getInMemoryTaskManager();
         }
 
+        HttpTaskServer hts = new HttpTaskServer();
+        HttpTaskServer.httpServer.createContext("/schedule/prioritized",
+                new ScheduleHandlerGetPrioritized(inMemoryTaskManager));
+    }
+
+    @BeforeEach
+    void start() {
+        HttpTaskServer.start();
+    }
+
+    @AfterEach
+    void stop() {
+        HttpTaskServer.stop();
+    }
+
+    @Test
+    void shouldGetPrioritizedTask() {
+        HttpRequest request = HttpRequest.newBuilder()
+                .GET()
+                .uri(uri)
+                .build();
+
+        HttpResponse<String> response;
         try {
-            httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
-        } catch (IOException e) {
-            throw new ServersException("Приносим свои извинения, вы не должны были видеть это!\n" +
-                    "Произошла ошибка создания сервера...");
+            response = client.send(request, handler);
+        } catch (IOException | InterruptedException e) {
+            throw new ServersException("Ошибка отправки/получения данных");
         }
 
-        httpServer.createContext("/schedule/prioritized", new ScheduleHandlerGetPrioritized(inMemoryTaskManager));
-        httpServer.createContext("/schedule/history", new ScheduleHandlerGetHistory(inMemoryTaskManager));
-        httpServer.createContext("/schedule/tasks", new ScheduleHandlerGetTasks(inMemoryTaskManager, fm));
-        httpServer.createContext("/schedule/subtasks", new ScheduleHandlerGetSubtasks(inMemoryTaskManager, fm));
-        httpServer.createContext("/schedule/epics", new ScheduleHandlerGetEpics(inMemoryTaskManager, fm));
-
-        httpServer.start();
-    }
-
-    public static void start() {
-        httpServer.start();
-    }
-
-    public static void stop() {
-        httpServer.stop(0);
+        assertEquals(200, response.statusCode());
+        assertEquals(inMemoryTaskManager.getPrioritizedTasks(), response.body());
     }
 }

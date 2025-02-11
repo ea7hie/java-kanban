@@ -1,4 +1,4 @@
-package commonTests;
+package managersTests.commonTests;
 
 import com.yandex.app.model.Epic;
 import com.yandex.app.model.Subtask;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CommonTestOfFileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
-    private static final Path dirForSave = Paths.get("java-kanban\\src\\com\\yandex\\app\\service\\storage");
+    private static final Path dirForSave = Paths.get("test/managersTests/commonTests/storage");
     private static final Path fileForSave = dirForSave.resolve("allTasks.txt");
 
     private static FileBackedTaskManager fm;

@@ -123,7 +123,7 @@ public class ScheduleHandlerGetSubtasks extends BaseHttpHandler implements HttpH
                     t.setId(id);
                     t.setStatus(progress);
                     fm.updateSubtask(inMemoryTaskManager.updateSubtask(t));
-                    sendText(httpExchange, "Успешно обновлено");
+                    sendText(httpExchange, "Успешно обновлено!");
                 } else {
                     sendNotFound(httpExchange, String.format("Подзадачи с заданным id (%d) не найдено.", id));
                 }
@@ -143,7 +143,7 @@ public class ScheduleHandlerGetSubtasks extends BaseHttpHandler implements HttpH
                 }
 
                 if (inMemoryTaskManager.isSubtaskAddedByID(idForDelete)) {
-                    fm.deleteOneSubtaskskByID(idForDelete);
+                    inMemoryTaskManager.deleteOneSubtaskskByID(idForDelete);
                     sendText(httpExchange, "Успешно удалено!");
                 } else {
                     sendNotFound(httpExchange, String.format("Подзадачи с заданным id (%d) не найдено.", idForDelete));
