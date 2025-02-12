@@ -6,10 +6,8 @@ import com.yandex.app.service.InMemoryTaskManager;
 import com.yandex.app.service.Managers;
 import com.yandex.app.service.exceptions.ManagerSaveException;
 import com.yandex.app.service.exceptions.ServersException;
-import com.yandex.app.service.httpHandlers.ScheduleHandlerGetPrioritized;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileWriter;
@@ -28,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HttpTaskServerGetPrioritizedTest {
     private static final HttpClient client = HttpClient.newHttpClient();
+    private static HttpTaskServer hts;
     private static final URI uri = URI.create("http://localhost:8080/schedule/prioritized");
     private static final HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
     private static InMemoryTaskManager inMemoryTaskManager;
@@ -35,7 +34,7 @@ public class HttpTaskServerGetPrioritizedTest {
     @BeforeAll
     static void beforeAll() {
         Path dirForSave = Paths.get("test/HttpServerTests/storage");
-        Path fileForSave = dirForSave.resolve("allTasks.txt");
+        Path fileForSave = dirForSave.resolve("allTasks.csv");
 
         FileBackedTaskManager fm;
         if (!Files.exists(dirForSave)) {
@@ -60,19 +59,12 @@ public class HttpTaskServerGetPrioritizedTest {
             inMemoryTaskManager = fm.getInMemoryTaskManager();
         }
 
-        HttpTaskServer hts = new HttpTaskServer();
-        HttpTaskServer.httpServer.createContext("/schedule/prioritized",
-                new ScheduleHandlerGetPrioritized(inMemoryTaskManager));
-    }
-
-    @BeforeEach
-    void start() {
-        HttpTaskServer.start();
+        hts = new HttpTaskServer(fm);
     }
 
     @AfterEach
     void stop() {
-        HttpTaskServer.stop();
+        hts.stop();
     }
 
     @Test

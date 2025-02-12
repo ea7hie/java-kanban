@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.rmi.ServerException;
 
 class BaseHttpHandler {
     protected void sendText(HttpExchange h, String text) throws IOException {
@@ -77,5 +78,17 @@ class BaseHttpHandler {
         h.sendResponseHeaders(400, resp.length);
         h.getResponseBody().write(resp);
         h.close();
+    }
+
+    protected void sendTextErrorServer(HttpExchange h) throws ServerException {
+        try {
+            byte[] resp = "Приносим извинения! Произошла ошибка в работе сервера!".getBytes(StandardCharsets.UTF_8);
+            h.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
+            h.sendResponseHeaders(500, resp.length);
+            h.getResponseBody().write(resp);
+            h.close();
+        } catch (IOException e) {
+            throw new ServerException("Произошла ошибка в работе сервера при попытке отправить sendTextErrorServer!");
+        }
     }
 }

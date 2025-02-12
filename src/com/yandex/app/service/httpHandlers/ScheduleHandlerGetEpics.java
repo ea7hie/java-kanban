@@ -7,10 +7,13 @@ import com.yandex.app.model.Epic;
 import com.yandex.app.model.Subtask;
 import com.yandex.app.service.FileBackedTaskManager;
 import com.yandex.app.service.InMemoryTaskManager;
+import com.yandex.app.service.exceptions.ServersException;
+import com.yandex.app.service.interfaces.TaskManager;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.rmi.ServerException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -24,123 +27,128 @@ public class ScheduleHandlerGetEpics extends BaseHttpHandler implements HttpHand
     private final FileBackedTaskManager fm;
     private final Gson gson;
 
-    public ScheduleHandlerGetEpics(InMemoryTaskManager inMemoryTaskManager, FileBackedTaskManager fm) {
-        this.inMemoryTaskManager = inMemoryTaskManager;
-        this.fm = fm;
+    public ScheduleHandlerGetEpics(TaskManager taskManager) {
+        this.fm = (FileBackedTaskManager) taskManager;
+        this.inMemoryTaskManager = fm.getInMemoryTaskManager();
         this.gson = new GsonBuilder().setPrettyPrinting()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
                 .create();
     }
 
     @Override
-    public void handle(HttpExchange httpExchange) throws IOException {
-        String method = httpExchange.getRequestMethod();
-        List<String> path = Arrays.asList(httpExchange.getRequestURI().getPath().split("/"));
-        int lengthOfPath = path.size();
+    public void handle(HttpExchange httpExchange) throws ServerException {
+        try {
+            String method = httpExchange.getRequestMethod();
+            List<String> path = Arrays.asList(httpExchange.getRequestURI().getPath().split("/"));
+            int lengthOfPath = path.size();
 
-        if (lengthOfPath == 5 && path.get(4).equals("subtasks")) {
-            int index;
-            try {
-                index = Integer.parseInt(path.get(3));
-            } catch (NumberFormatException e) {
-                sendTextErrorIsNaN(httpExchange);
-                return;
-            }
-
-            if (inMemoryTaskManager.isEpicAddedByID(index)) {
-                sendText(httpExchange, printOneEpicWithAllItsSubtasks(index));
-            } else {
-                sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", index));
-            }
-
-            return;
-        }
-
-        if (lengthOfPath > 4) {
-            sendTextErrorURLLength(httpExchange);
-            return;
-        }
-
-        switch (method) {
-            case "GET":
-                if (lengthOfPath == 3) {
-                    sendText(httpExchange, printAllEpics());
-                } else {
-                    int index;
-                    try {
-                        index = Integer.parseInt(path.get(3));
-                    } catch (NumberFormatException e) {
-                        sendTextErrorIsNaN(httpExchange);
-                        return;
-                    }
-
-                    if (inMemoryTaskManager.isEpicAddedByID(index)) {
-                        sendText(httpExchange, inMemoryTaskManager.findEpicByID(index).toString());
-                    } else {
-                        sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", index));
-                    }
-                }
-                break;
-            case "POST":
-                if (lengthOfPath != 3) {
-                    sendTextErrorURLLength(httpExchange);
-                    return;
-                }
-
-                String body = new String(httpExchange.getRequestBody().readAllBytes(), DEFAULT_CHARSET);
-                JsonElement jsonElement = JsonParser.parseString(body);
-                JsonObject jsonObject = jsonElement.getAsJsonObject();
-                int temporaryID = -1;
-
-                String name;
-                String description;
-                int id;
-
+            if (lengthOfPath == 5 && path.get(4).equals("subtasks")) {
+                int index;
                 try {
-                    name = Objects.requireNonNull(jsonObject.get("name").getAsString());
-                    description = Objects.requireNonNull(jsonObject.get("description").getAsString());
-                    id = jsonObject.get("id").getAsInt();
-                } catch (NullPointerException | IllegalStateException | ClassCastException e) {
-                    sendTextErrorInvalidValues(httpExchange);
-                    return;
-                }
-
-                if (id == temporaryID) {
-                    fm.saveNewEpic(inMemoryTaskManager.saveNewEpic(new Epic(name, description, temporaryID)));
-                    sendTextCreated(httpExchange);
-                } else if (inMemoryTaskManager.isEpicAddedByID(id)) {
-                    Epic epic = inMemoryTaskManager.findEpicByID(id);
-                    epic.setName(name);
-                    epic.setDescription(description);
-                    fm.updateEpic(inMemoryTaskManager.updateEpic(epic));
-                    sendText(httpExchange, "Успешно обновлено!");
-                } else {
-                    sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", id));
-                }
-                break;
-            case "DELETE":
-                if (lengthOfPath != 4) {
-                    sendTextErrorURLLength(httpExchange);
-                    return;
-                }
-
-                int idForDelete;
-                try {
-                    idForDelete = Integer.parseInt(path.get(3));
+                    index = Integer.parseInt(path.get(3));
                 } catch (NumberFormatException e) {
                     sendTextErrorIsNaN(httpExchange);
                     return;
                 }
 
-                if (inMemoryTaskManager.isEpicAddedByID(idForDelete)) {
-                    inMemoryTaskManager.deleteOneEpicByID(idForDelete);
-                    sendText(httpExchange, "Успешно удалено!");
+                if (inMemoryTaskManager.isEpicAddedByID(index)) {
+                    sendText(httpExchange, printOneEpicWithAllItsSubtasks(index));
                 } else {
-                    sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", idForDelete));
+                    sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", index));
                 }
-                break;
-            default:
-                sendTextErrorMethod(httpExchange);
+
+                return;
+            }
+
+            if (lengthOfPath > 4) {
+                sendTextErrorURLLength(httpExchange);
+                return;
+            }
+
+            switch (method) {
+                case "GET":
+                    if (lengthOfPath == 3) {
+                        sendText(httpExchange, printAllEpics());
+                    } else {
+                        int index;
+                        try {
+                            index = Integer.parseInt(path.get(3));
+                        } catch (NumberFormatException e) {
+                            sendTextErrorIsNaN(httpExchange);
+                            return;
+                        }
+
+                        if (inMemoryTaskManager.isEpicAddedByID(index)) {
+                            sendText(httpExchange, inMemoryTaskManager.findEpicByID(index).toString());
+                        } else {
+                            sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", index));
+                        }
+                    }
+                    break;
+                case "POST":
+                    if (lengthOfPath != 3) {
+                        sendTextErrorURLLength(httpExchange);
+                        return;
+                    }
+
+                    String body = new String(httpExchange.getRequestBody().readAllBytes(), DEFAULT_CHARSET);
+                    JsonElement jsonElement = JsonParser.parseString(body);
+                    JsonObject jsonObject = jsonElement.getAsJsonObject();
+                    int temporaryID = -1;
+
+                    String name;
+                    String description;
+                    int id;
+
+                    try {
+                        name = Objects.requireNonNull(jsonObject.get("name").getAsString());
+                        description = Objects.requireNonNull(jsonObject.get("description").getAsString());
+                        id = jsonObject.get("id").getAsInt();
+                    } catch (NullPointerException | IllegalStateException | ClassCastException e) {
+                        sendTextErrorInvalidValues(httpExchange);
+                        return;
+                    }
+
+                    if (id == temporaryID) {
+                        fm.saveNewEpic(inMemoryTaskManager.saveNewEpic(new Epic(name, description, temporaryID)));
+                        sendTextCreated(httpExchange);
+                    } else if (inMemoryTaskManager.isEpicAddedByID(id)) {
+                        Epic epic = inMemoryTaskManager.findEpicByID(id);
+                        epic.setName(name);
+                        epic.setDescription(description);
+                        fm.updateEpic(inMemoryTaskManager.updateEpic(epic));
+                        sendText(httpExchange, "Успешно обновлено!");
+                    } else {
+                        sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", id));
+                    }
+                    break;
+                case "DELETE":
+                    if (lengthOfPath != 4) {
+                        sendTextErrorURLLength(httpExchange);
+                        return;
+                    }
+
+                    int idForDelete;
+                    try {
+                        idForDelete = Integer.parseInt(path.get(3));
+                    } catch (NumberFormatException e) {
+                        sendTextErrorIsNaN(httpExchange);
+                        return;
+                    }
+
+                    if (inMemoryTaskManager.isEpicAddedByID(idForDelete)) {
+                        inMemoryTaskManager.deleteOneEpicByID(idForDelete);
+                        sendText(httpExchange, "Успешно удалено!");
+                    } else {
+                        sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", idForDelete));
+                    }
+                    break;
+                default:
+                    sendTextErrorMethod(httpExchange);
+            }
+        } catch (IOException e) {
+            sendTextErrorServer(httpExchange);
+            throw new ServersException("Ошибка в работе сервера при работе с эпиками");
         }
     }
 

@@ -2,11 +2,10 @@ package com.yandex.app;
 
 import com.sun.net.httpserver.HttpServer;
 import com.yandex.app.service.FileBackedTaskManager;
-import com.yandex.app.service.InMemoryTaskManager;
-import com.yandex.app.service.Managers;
 import com.yandex.app.service.exceptions.ManagerSaveException;
 import com.yandex.app.service.exceptions.ServersException;
 import com.yandex.app.service.httpHandlers.*;
+import com.yandex.app.service.interfaces.TaskManager;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,21 +17,29 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class HttpTaskServer {
-    public static HttpServer httpServer;
-    private static InMemoryTaskManager inMemoryTaskManager;
+    HttpServer httpServer;
+    private final int PORT = 8080;
 
-    public HttpTaskServer() {
+    public HttpTaskServer(TaskManager taskManager) {
         try {
-            httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
+            httpServer = HttpServer.create(new InetSocketAddress(PORT), 0);
         } catch (IOException e) {
             throw new ServersException("Приносим свои извинения, вы не должны были видеть это!\n" +
                     "Произошла ошибка создания сервера...");
         }
+
+        httpServer.createContext("/schedule/prioritized", new ScheduleHandlerGetPrioritized(taskManager));
+        httpServer.createContext("/schedule/history", new ScheduleHandlerGetHistory(taskManager));
+        httpServer.createContext("/schedule/tasks", new ScheduleHandlerGetTasks(taskManager));
+        httpServer.createContext("/schedule/subtasks", new ScheduleHandlerGetSubtasks(taskManager));
+        httpServer.createContext("/schedule/epics", new ScheduleHandlerGetEpics(taskManager));
+
+        httpServer.start();
     }
 
     public static void main(String[] args) {
         Path dirForSave = Paths.get("src/com/yandex/app/service/storage");
-        Path fileForSave = dirForSave.resolve("allTasks.txt");
+        Path fileForSave = dirForSave.resolve("allTasks.csv");
 
         FileBackedTaskManager fm;
         if (!Files.exists(dirForSave)) {
@@ -51,33 +58,18 @@ public class HttpTaskServer {
                         "Произошла ошибка создания хранилища...");
             }
             fm = new FileBackedTaskManager(fileForSave);
-            inMemoryTaskManager = (InMemoryTaskManager) Managers.getDefaultTaskManager();
         } else {
             fm = FileBackedTaskManager.loadFromFile(fileForSave.toFile());
-            inMemoryTaskManager = fm.getInMemoryTaskManager();
         }
 
-        try {
-            httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
-        } catch (IOException e) {
-            throw new ServersException("Приносим свои извинения, вы не должны были видеть это!\n" +
-                    "Произошла ошибка создания сервера...");
-        }
+        HttpTaskServer hts = new HttpTaskServer(fm);
+    }
 
-        httpServer.createContext("/schedule/prioritized", new ScheduleHandlerGetPrioritized(inMemoryTaskManager));
-        httpServer.createContext("/schedule/history", new ScheduleHandlerGetHistory(inMemoryTaskManager));
-        httpServer.createContext("/schedule/tasks", new ScheduleHandlerGetTasks(inMemoryTaskManager, fm));
-        httpServer.createContext("/schedule/subtasks", new ScheduleHandlerGetSubtasks(inMemoryTaskManager, fm));
-        httpServer.createContext("/schedule/epics", new ScheduleHandlerGetEpics(inMemoryTaskManager, fm));
-
+    public void start() {
         httpServer.start();
     }
 
-    public static void start() {
-        httpServer.start();
-    }
-
-    public static void stop() {
+    public void stop() {
         httpServer.stop(0);
     }
 }

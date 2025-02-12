@@ -9,7 +9,6 @@ import com.yandex.app.service.InMemoryTaskManager;
 import com.yandex.app.service.Managers;
 import com.yandex.app.service.exceptions.ManagerSaveException;
 import com.yandex.app.service.exceptions.ServersException;
-import com.yandex.app.service.httpHandlers.ScheduleHandlerGetSubtasks;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +34,7 @@ public class HttpTaskServerGetSubtasksTest {
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
     private static final Path dirForSave = Paths.get("test/HttpServerTests/storage");
-    private static final Path fileForSave = dirForSave.resolve("allTasks.txt");
+    private static final Path fileForSave = dirForSave.resolve("allTasks.csv");
 
     private static InMemoryTaskManager inMemoryTaskManager;
     private static FileBackedTaskManager fm;
@@ -72,11 +71,7 @@ public class HttpTaskServerGetSubtasksTest {
         uri = URI.create("http://localhost:8080/schedule/subtasks");
         fm = FileBackedTaskManager.loadFromFile(fileForSave.toFile());
         inMemoryTaskManager = fm.getInMemoryTaskManager();
-        hts = new HttpTaskServer();
-        HttpTaskServer.httpServer.createContext("/schedule/subtasks",
-                new ScheduleHandlerGetSubtasks(inMemoryTaskManager, fm));
-
-        HttpTaskServer.start();
+        hts = new HttpTaskServer(fm);
 
         fm.saveNewTask(inMemoryTaskManager.saveNewTask(
                 new Task("!!!1", "desc 1", 1, 35, "27.01.2004; 12:30")));
@@ -110,7 +105,7 @@ public class HttpTaskServerGetSubtasksTest {
     @AfterEach
     void clear() {
         fm.clearFile();
-        HttpTaskServer.stop();
+        hts.stop();
     }
 
     //Проверка /subtasks

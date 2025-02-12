@@ -1,2 +1,0 @@
-id,type,name,status,description,epic
-1,TASK,1,NEW,1,11.12.2023; 12:23,5
