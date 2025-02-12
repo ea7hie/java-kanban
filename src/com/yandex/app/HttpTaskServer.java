@@ -18,11 +18,11 @@ import java.nio.file.Paths;
 
 public class HttpTaskServer {
     HttpServer httpServer;
-    private final int PORT = 8080;
+    private final int port = 8080;
 
     public HttpTaskServer(TaskManager taskManager) {
         try {
-            httpServer = HttpServer.create(new InetSocketAddress(PORT), 0);
+            httpServer = HttpServer.create(new InetSocketAddress(port), 0);
         } catch (IOException e) {
             throw new ServersException("Приносим свои извинения, вы не должны были видеть это!\n" +
                     "Произошла ошибка создания сервера...");
