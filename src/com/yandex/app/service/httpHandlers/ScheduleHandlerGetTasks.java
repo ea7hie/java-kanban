@@ -5,12 +5,9 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.yandex.app.model.Progress;
 import com.yandex.app.model.Task;
-import com.yandex.app.service.FileBackedTaskManager;
-import com.yandex.app.service.InMemoryTaskManager;
 import com.yandex.app.service.exceptions.ServersException;
 import com.yandex.app.service.interfaces.TaskManager;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.ServerException;
@@ -22,17 +19,14 @@ import java.util.stream.Collectors;
 
 public class ScheduleHandlerGetTasks extends BaseHttpHandler implements HttpHandler {
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-
-    private final InMemoryTaskManager inMemoryTaskManager;
-    private final FileBackedTaskManager fm;
     private final Gson gson;
+    private final TaskManager tm;
 
     public ScheduleHandlerGetTasks(TaskManager taskManager) {
-        this.fm = (FileBackedTaskManager) taskManager;
-        this.inMemoryTaskManager = fm.getInMemoryTaskManager();
         this.gson = new GsonBuilder().setPrettyPrinting()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
                 .create();
+        this.tm = taskManager;
     }
 
     @Override
@@ -60,8 +54,8 @@ public class ScheduleHandlerGetTasks extends BaseHttpHandler implements HttpHand
                             return;
                         }
 
-                        if (inMemoryTaskManager.isTaskAddedByID(index)) {
-                            sendText(httpExchange, inMemoryTaskManager.findTaskByID(index).toString());
+                        if (tm.findTaskByID(index) != null) {
+                            sendText(httpExchange, tm.findTaskByID(index).toString());
                         } else {
                             sendNotFound(httpExchange, String.format("Задачи с заданным id (%d) не найдено.", index));
                         }
@@ -106,20 +100,18 @@ public class ScheduleHandlerGetTasks extends BaseHttpHandler implements HttpHand
                     }
 
                     if (id == temporaryID) {
-                        if (inMemoryTaskManager.isTimeOverlap(startTime, duration)) {
+                        if (tm.isTimeOverlap(startTime, duration)) {
                             sendHasInteractions(httpExchange);
                             return;
                         }
 
-                        fm.saveNewTask(inMemoryTaskManager.saveNewTask(
-                                new Task(name, description, temporaryID, duration, startTime))
-                        );
+                       tm.saveNewTask(new Task(name, description, temporaryID, duration, startTime) );
                         sendTextCreated(httpExchange);
-                    } else if (inMemoryTaskManager.isTaskAddedByID(id)) {
+                    } else if (tm.findTaskByID(id) != null) {
                         Task t = new Task(name, description, temporaryID, duration, startTime);
                         t.setId(id);
                         t.setStatus(progress);
-                        fm.updateTask(inMemoryTaskManager.updateTask(t));
+                        tm.updateTask(t);
                         sendText(httpExchange, "Успешно обновлено!");
                     } else {
                         sendNotFound(httpExchange, String.format("Задачи с заданным id (%d) не найдено.", id));
@@ -139,9 +131,8 @@ public class ScheduleHandlerGetTasks extends BaseHttpHandler implements HttpHand
                         return;
                     }
 
-                    if (inMemoryTaskManager.isTaskAddedByID(idForDelete)) {
-                        inMemoryTaskManager.deleteOneTaskByID(idForDelete);
-                        fm.deleteOneTaskByID(idForDelete);
+                    if (tm.findTaskByID(idForDelete) != null) {
+                        tm.deleteOneTaskByID(idForDelete);
                         sendText(httpExchange, "Успешно удалено!");
                     } else {
                         sendNotFound(httpExchange, String.format("Задачи с заданным id (%d) не найдено.", idForDelete));
@@ -150,17 +141,17 @@ public class ScheduleHandlerGetTasks extends BaseHttpHandler implements HttpHand
                 default:
                     sendTextErrorMethod(httpExchange);
             }
-        }  catch (IOException e) {
+        } catch (Exception e) {
             sendTextErrorServer(httpExchange);
             throw new ServersException("Ошибка в работе сервера при работе с эпиками");
         }
     }
 
     private String printAllTasks() {
-        if (inMemoryTaskManager.getAllTasks().isEmpty()) {
+        if (tm.getAllTasks().isEmpty()) {
             return gson.toJson("Список задач пуст.");
         }
-        return inMemoryTaskManager.getAllTasks().stream()
+        return tm.getAllTasks().stream()
                 .map(Task::toString)
                 .collect(Collectors.joining());
     }

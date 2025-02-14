@@ -27,8 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HttpTaskServerGetSubtasksTest {
     private static final HttpClient client = HttpClient.newHttpClient();
@@ -71,7 +70,7 @@ public class HttpTaskServerGetSubtasksTest {
         uri = URI.create("http://localhost:8080/schedule/subtasks");
         fm = FileBackedTaskManager.loadFromFile(fileForSave.toFile());
         inMemoryTaskManager = fm.getInMemoryTaskManager();
-        hts = new HttpTaskServer(fm);
+        hts = new HttpTaskServer(inMemoryTaskManager);
 
         fm.saveNewTask(inMemoryTaskManager.saveNewTask(
                 new Task("!!!1", "desc 1", 1, 35, "27.01.2004; 12:30")));
@@ -317,7 +316,7 @@ public class HttpTaskServerGetSubtasksTest {
                 .uri(uri)
                 .build();
 
-        assertThrows(ServersException.class, () -> {
+        assertDoesNotThrow(() -> {
             try {
                 HttpResponse<String> response = client.send(request, handler);
             } catch (IOException | InterruptedException e) {

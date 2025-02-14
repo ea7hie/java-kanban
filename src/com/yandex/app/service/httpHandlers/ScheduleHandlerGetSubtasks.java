@@ -5,12 +5,9 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.yandex.app.model.Progress;
 import com.yandex.app.model.Subtask;
-import com.yandex.app.service.FileBackedTaskManager;
-import com.yandex.app.service.InMemoryTaskManager;
 import com.yandex.app.service.exceptions.ServersException;
 import com.yandex.app.service.interfaces.TaskManager;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.ServerException;
@@ -22,17 +19,14 @@ import java.util.stream.Collectors;
 
 public class ScheduleHandlerGetSubtasks extends BaseHttpHandler implements HttpHandler {
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-
-    private final InMemoryTaskManager inMemoryTaskManager;
-    private final FileBackedTaskManager fm;
     private final Gson gson;
+    private final TaskManager tm;
 
     public ScheduleHandlerGetSubtasks(TaskManager taskManager) {
-        this.fm = (FileBackedTaskManager) taskManager;
-        this.inMemoryTaskManager = fm.getInMemoryTaskManager();
         this.gson = new GsonBuilder().setPrettyPrinting()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
                 .create();
+        this.tm = taskManager;
     }
 
     @Override
@@ -60,8 +54,8 @@ public class ScheduleHandlerGetSubtasks extends BaseHttpHandler implements HttpH
                             return;
                         }
 
-                        if (inMemoryTaskManager.isSubtaskAddedByID(index)) {
-                            sendText(httpExchange, inMemoryTaskManager.findSubtaskByID(index).toString());
+                        if (tm.findSubtaskByID(index) != null) {
+                            sendText(httpExchange, tm.findSubtaskByID(index).toString());
                         } else {
                             sendNotFound(httpExchange, String.format("Подзадачи с заданным id (%d) не найдено.", index));
                         }
@@ -107,26 +101,26 @@ public class ScheduleHandlerGetSubtasks extends BaseHttpHandler implements HttpH
                         return;
                     }
 
-                    if (!inMemoryTaskManager.isEpicAddedByID(idOfSubtaskEpic)) {
+                    if (tm.findEpicByID(idOfSubtaskEpic) == null) {
                         sendNotFound(httpExchange, String.format("Нет эпика с таким id (%d)", idOfSubtaskEpic));
                         return;
                     }
 
                     if (id == temporaryID) {
-                        if (inMemoryTaskManager.isTimeOverlap(startTime, duration)) {
+                        if (tm.isTimeOverlap(startTime, duration)) {
                             sendHasInteractions(httpExchange);
                             break;
                         }
 
                         Subtask newSubtask = new Subtask(
                                 name, description, temporaryID, idOfSubtaskEpic, duration, startTime);
-                        fm.saveNewSubtask(inMemoryTaskManager.saveNewSubtask(newSubtask));
+                        tm.saveNewSubtask(newSubtask);
                         sendTextCreated(httpExchange);
-                    } else if (inMemoryTaskManager.isSubtaskAddedByID(id)) {
+                    } else if (tm.findSubtaskByID(id) != null) {
                         Subtask t = new Subtask(name, description, temporaryID, idOfSubtaskEpic, duration, startTime);
                         t.setId(id);
                         t.setStatus(progress);
-                        fm.updateSubtask(inMemoryTaskManager.updateSubtask(t));
+                        tm.updateSubtask(t);
                         sendText(httpExchange, "Успешно обновлено!");
                     } else {
                         sendNotFound(httpExchange, String.format("Подзадачи с заданным id (%d) не найдено.", id));
@@ -146,8 +140,8 @@ public class ScheduleHandlerGetSubtasks extends BaseHttpHandler implements HttpH
                         return;
                     }
 
-                    if (inMemoryTaskManager.isSubtaskAddedByID(idForDelete)) {
-                        inMemoryTaskManager.deleteOneSubtaskskByID(idForDelete);
+                    if (tm.findSubtaskByID(idForDelete) != null) {
+                        tm.deleteOneSubtaskskByID(idForDelete);
                         sendText(httpExchange, "Успешно удалено!");
                     } else {
                         sendNotFound(httpExchange, String.format("Подзадачи с заданным id (%d) не найдено.", idForDelete));
@@ -156,17 +150,17 @@ public class ScheduleHandlerGetSubtasks extends BaseHttpHandler implements HttpH
                 default:
                     sendTextErrorMethod(httpExchange);
             }
-        }  catch (IOException e) {
+        } catch (Exception e) {
             sendTextErrorServer(httpExchange);
             throw new ServersException("Ошибка в работе сервера при работе с эпиками");
         }
     }
 
     private String printAllSubtasks() {
-        if (inMemoryTaskManager.getAllSubtasks().isEmpty()) {
+        if (tm.getAllSubtasks().isEmpty()) {
             return gson.toJson("Список подзадач пуст.");
         }
-        return inMemoryTaskManager.getAllSubtasks().stream()
+        return tm.getAllSubtasks().stream()
                 .map(Subtask::toString)
                 .collect(Collectors.joining());
     }

@@ -2,6 +2,8 @@ package com.yandex.app;
 
 import com.sun.net.httpserver.HttpServer;
 import com.yandex.app.service.FileBackedTaskManager;
+import com.yandex.app.service.InMemoryTaskManager;
+import com.yandex.app.service.Managers;
 import com.yandex.app.service.exceptions.ManagerSaveException;
 import com.yandex.app.service.exceptions.ServersException;
 import com.yandex.app.service.httpHandlers.*;
@@ -17,7 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class HttpTaskServer {
-    HttpServer httpServer;
+    private final HttpServer httpServer;
     private final int port = 8080;
 
     public HttpTaskServer(TaskManager taskManager) {
@@ -42,6 +44,7 @@ public class HttpTaskServer {
         Path fileForSave = dirForSave.resolve("allTasks.csv");
 
         FileBackedTaskManager fm;
+        InMemoryTaskManager inMemoryTaskManager;
         if (!Files.exists(dirForSave)) {
             try {
                 Files.createDirectory(dirForSave);
@@ -58,15 +61,13 @@ public class HttpTaskServer {
                         "Произошла ошибка создания хранилища...");
             }
             fm = new FileBackedTaskManager(fileForSave);
+            inMemoryTaskManager = (InMemoryTaskManager) Managers.getDefaultTaskManager();
         } else {
             fm = FileBackedTaskManager.loadFromFile(fileForSave.toFile());
+            inMemoryTaskManager = fm.getInMemoryTaskManager();
         }
 
-        HttpTaskServer hts = new HttpTaskServer(fm);
-    }
-
-    public void start() {
-        httpServer.start();
+        HttpTaskServer hts = new HttpTaskServer(inMemoryTaskManager);
     }
 
     public void stop() {

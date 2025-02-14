@@ -11,6 +11,18 @@ import java.util.Map;
 
 public class InMemoryHistoryManager implements HistoryManager {
     private final DoubleLinkedList doubleLinkedList = new DoubleLinkedList();
+    private FileBackedTaskManager fm;
+
+    public void setFm(FileBackedTaskManager fm) {
+        this.fm = fm;
+    }
+
+    public void recordFromFBM(Task task) {
+        if (doubleLinkedList.indexesOfViewedTasks.containsKey(task.getId())) {
+            remove(task.getId());
+        }
+        doubleLinkedList.linkLast(task);
+    }
 
     @Override
     public void add(Task task) {
@@ -18,6 +30,9 @@ public class InMemoryHistoryManager implements HistoryManager {
             remove(task.getId());
         }
         doubleLinkedList.linkLast(task);
+        if (fm != null) {
+            fm.needSave();
+        }
     }
 
     @Override
@@ -30,6 +45,9 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (doubleLinkedList.indexesOfViewedTasks.containsKey(id)) {
             doubleLinkedList.removeNode(doubleLinkedList.indexesOfViewedTasks.get(id));
             doubleLinkedList.removeOneElemFromMap(id);
+            if (fm != null) {
+                fm.needSave();
+            }
         }
     }
 
@@ -37,16 +55,25 @@ public class InMemoryHistoryManager implements HistoryManager {
         for (Integer id : doubleLinkedList.findIdsOfAllTasksInViewedTasks()) {
             remove(id);
         }
+        if (fm != null) {
+            fm.needSave();
+        }
     }
 
     public void removeAllEpicsInViewedTasks() {
         for (Integer id : doubleLinkedList.findIdsOfAllEpicsInViewedTasks()) {
             remove(id);
         }
+        if (fm != null) {
+            fm.needSave();
+        }
     }
 
     public void clearListOfViewedTasks() {
         doubleLinkedList.clear();
+        if (fm != null) {
+            fm.needSave();
+        }
     }
 
     private class DoubleLinkedList {

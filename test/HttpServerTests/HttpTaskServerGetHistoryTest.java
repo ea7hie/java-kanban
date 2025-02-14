@@ -95,7 +95,7 @@ public class HttpTaskServerGetHistoryTest {
         Epic epic4 = inMemoryTaskManager.findEpicByID(4);
         Subtask subtask13 = inMemoryTaskManager.findSubtaskByID(13);
 
-        hts = new HttpTaskServer(fm);
+        hts = new HttpTaskServer(inMemoryTaskManager);
     }
 
     @AfterAll

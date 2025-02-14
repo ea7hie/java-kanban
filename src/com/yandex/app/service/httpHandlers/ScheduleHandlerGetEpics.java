@@ -5,34 +5,31 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.yandex.app.model.Epic;
 import com.yandex.app.model.Subtask;
-import com.yandex.app.service.FileBackedTaskManager;
-import com.yandex.app.service.InMemoryTaskManager;
+import com.yandex.app.service.comparators.SubtaskStartTimeComparator;
 import com.yandex.app.service.exceptions.ServersException;
 import com.yandex.app.service.interfaces.TaskManager;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.ServerException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.yandex.app.model.Task.NEW_LINE;
 
 public class ScheduleHandlerGetEpics extends BaseHttpHandler implements HttpHandler {
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
-    private final InMemoryTaskManager inMemoryTaskManager;
-    private final FileBackedTaskManager fm;
     private final Gson gson;
+    private final TaskManager tm;
 
     public ScheduleHandlerGetEpics(TaskManager taskManager) {
-        this.fm = (FileBackedTaskManager) taskManager;
-        this.inMemoryTaskManager = fm.getInMemoryTaskManager();
         this.gson = new GsonBuilder().setPrettyPrinting()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
                 .create();
+
+        this.tm = taskManager;
     }
 
     @Override
@@ -51,7 +48,7 @@ public class ScheduleHandlerGetEpics extends BaseHttpHandler implements HttpHand
                     return;
                 }
 
-                if (inMemoryTaskManager.isEpicAddedByID(index)) {
+                if (tm.findEpicByID(index) != null) {
                     sendText(httpExchange, printOneEpicWithAllItsSubtasks(index));
                 } else {
                     sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", index));
@@ -78,8 +75,8 @@ public class ScheduleHandlerGetEpics extends BaseHttpHandler implements HttpHand
                             return;
                         }
 
-                        if (inMemoryTaskManager.isEpicAddedByID(index)) {
-                            sendText(httpExchange, inMemoryTaskManager.findEpicByID(index).toString());
+                        if (tm.findEpicByID(index) != null) {
+                            sendText(httpExchange, tm.findEpicByID(index).toString());
                         } else {
                             sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", index));
                         }
@@ -110,13 +107,13 @@ public class ScheduleHandlerGetEpics extends BaseHttpHandler implements HttpHand
                     }
 
                     if (id == temporaryID) {
-                        fm.saveNewEpic(inMemoryTaskManager.saveNewEpic(new Epic(name, description, temporaryID)));
+                        tm.saveNewEpic(new Epic(name, description, temporaryID));
                         sendTextCreated(httpExchange);
-                    } else if (inMemoryTaskManager.isEpicAddedByID(id)) {
-                        Epic epic = inMemoryTaskManager.findEpicByID(id);
+                    } else if (tm.findEpicByID(id) != null) {
+                        Epic epic = tm.findEpicByID(id);
                         epic.setName(name);
                         epic.setDescription(description);
-                        fm.updateEpic(inMemoryTaskManager.updateEpic(epic));
+                        tm.updateEpic(epic);
                         sendText(httpExchange, "Успешно обновлено!");
                     } else {
                         sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", id));
@@ -136,8 +133,8 @@ public class ScheduleHandlerGetEpics extends BaseHttpHandler implements HttpHand
                         return;
                     }
 
-                    if (inMemoryTaskManager.isEpicAddedByID(idForDelete)) {
-                        inMemoryTaskManager.deleteOneEpicByID(idForDelete);
+                    if (tm.findEpicByID(idForDelete) != null) {
+                        tm.deleteOneEpicByID(idForDelete);
                         sendText(httpExchange, "Успешно удалено!");
                     } else {
                         sendNotFound(httpExchange, String.format("Эпика с заданным id (%d) не найдено.", idForDelete));
@@ -146,33 +143,54 @@ public class ScheduleHandlerGetEpics extends BaseHttpHandler implements HttpHand
                 default:
                     sendTextErrorMethod(httpExchange);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             sendTextErrorServer(httpExchange);
             throw new ServersException("Ошибка в работе сервера при работе с эпиками");
         }
     }
 
     private String printAllEpics() {
-        if (inMemoryTaskManager.getAllEpics().isEmpty()) {
+        if (tm.getAllEpics().isEmpty()) {
             return gson.toJson("Список эпиков пуст.");
         }
 
         StringBuilder messageWithAllEpics = new StringBuilder();
-        for (Epic epic : inMemoryTaskManager.getAllEpics()) {
+        for (Epic epic : tm.getAllEpics()) {
             messageWithAllEpics.append(epic.toString());
-            messageWithAllEpics.append(inMemoryTaskManager.getFullDescOfAllSubtasksOfEpicById(epic.getId()));
+            messageWithAllEpics.append(getFullDescOfAllSubtasksOfEpicById(epic.getId()));
         }
         return messageWithAllEpics.toString();
     }
 
     private String printOneEpicWithAllItsSubtasks(int id) {
         StringBuilder message = new StringBuilder();
-        message.append(inMemoryTaskManager.findEpicByID(id).toString());
-        String subtasks = inMemoryTaskManager.findEpicByID(id).getSubtasksIDs().stream()
-                .map(inMemoryTaskManager::findSubtaskByID)
+        message.append(tm.findEpicByID(id).toString());
+        String subtasks = tm.findEpicByID(id).getSubtasksIDs().stream()
+                .map(tm::findSubtaskByID)
                 .map(Subtask::toString)
                 .collect(Collectors.joining());
 
         return message.append(subtasks).toString();
+    }
+
+    private String getFullDescOfAllSubtasksOfEpicById(int id) {
+        Epic epic = tm.findEpicByID(id);
+
+        Map<Integer, Subtask> allSubtasks = new HashMap<>();
+        for (Subtask subtask : tm.getAllSubtasks()) {
+            allSubtasks.put(subtask.getId(), subtask);
+        }
+
+        List<Subtask> allSubtasksInEpic = epic.getSubtasksIDs().stream()
+                .map(allSubtasks::get)
+                .sorted(new SubtaskStartTimeComparator())
+                .toList();
+
+        String fullDescription = "";
+        for (int i = 0; i < allSubtasksInEpic.size(); i++) {
+            Subtask currentSubtask = allSubtasksInEpic.get(i);
+            fullDescription = fullDescription + "Подзадача №" + (i + 1) + currentSubtask.toString();
+        }
+        return fullDescription + NEW_LINE;
     }
 }

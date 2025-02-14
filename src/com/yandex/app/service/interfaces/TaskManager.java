@@ -14,6 +14,12 @@ public interface TaskManager {
 
     ArrayList<Subtask> getAllSubtasks();
 
+    ArrayList<Task> getListOfHistory();
+
+    String showListViewedTasks();
+
+    String getPrioritizedTasks();
+
     //удалить что-то
     void removeAllTasks();
 
@@ -47,4 +53,6 @@ public interface TaskManager {
     Epic updateEpic(Epic epic);
 
     Subtask updateSubtask(Subtask subtask);
+
+    boolean isTimeOverlap(String startTime, int duration);
 }

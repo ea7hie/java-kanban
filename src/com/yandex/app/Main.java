@@ -27,7 +27,7 @@ public class Main {
         String[] enumsProgress = {"NEW", "IN_PROGRESS", "DONE"};
 
         Path dirForSave = Paths.get("src/com/yandex/app/service/storage");
-        Path fileForSave = dirForSave.resolve("allTasks.txt");
+        Path fileForSave = dirForSave.resolve("allTasks.csv");
 
         FileBackedTaskManager fm;
         if (!Files.exists(dirForSave)) {
