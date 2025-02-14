@@ -105,7 +105,7 @@ public class ScheduleHandlerGetTasks extends BaseHttpHandler implements HttpHand
                             return;
                         }
 
-                       tm.saveNewTask(new Task(name, description, temporaryID, duration, startTime) );
+                       tm.saveNewTask(new Task(name, description, temporaryID, duration, startTime));
                         sendTextCreated(httpExchange);
                     } else if (tm.findTaskByID(id) != null) {
                         Task t = new Task(name, description, temporaryID, duration, startTime);
