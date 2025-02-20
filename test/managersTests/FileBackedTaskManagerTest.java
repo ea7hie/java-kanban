@@ -1,3 +1,5 @@
+package managersTests;
+
 import com.yandex.app.service.FileBackedTaskManager;
 import com.yandex.app.service.exceptions.ManagerSaveException;
 import org.junit.jupiter.api.Assertions;
@@ -13,10 +15,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class FileBackedTaskManagerTest {
-    private static final Path dirForSave = Paths.get("java-kanban\\src\\com\\yandex\\app\\service\\storage");
-    private static final Path
-            fileForSave = dirForSave.resolve("allTasks.txt");
+    private static final Path dirForSave = Paths.get("test/managersTests/commonTests/storage");
+    private static final Path fileForSave = dirForSave.resolve("allTasks.txt");
     private static FileBackedTaskManager fm;
+
 
     @BeforeAll
     public static void beforeAll() {

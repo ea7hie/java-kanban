@@ -17,8 +17,8 @@ import static com.yandex.app.model.Task.FORMAT_DATE;
 import static com.yandex.app.model.Task.NEW_LINE;
 
 public class InMemoryTaskManager implements TaskManager {
-    private final InMemoryHistoryManager inMemoryHistoryManager = (InMemoryHistoryManager) Managers.getDefaultHistory();
-    protected Map<Integer, Task> allTasks;
+    protected final InMemoryHistoryManager inMemoryHistoryManager;
+    public Map<Integer, Task> allTasks;
     protected Map<Integer, Epic> allEpics;
     protected Map<Integer, Subtask> allSubtasks;
     private final ArrayList<Integer> allIDs = new ArrayList<>();
@@ -30,6 +30,7 @@ public class InMemoryTaskManager implements TaskManager {
         this.allEpics = new HashMap<>();
         this.allSubtasks = new HashMap<>();
         this.sortedTasks = new TreeSet<>(new ComparatorByStartTime());
+        this.inMemoryHistoryManager = (InMemoryHistoryManager) Managers.getDefaultHistory();
     }
 
     private void countAllIDs() {
@@ -100,6 +101,7 @@ public class InMemoryTaskManager implements TaskManager {
         return listViewedTasks + "\n";
     }
 
+    @Override
     public ArrayList<Task> getListOfHistory() {
         return inMemoryHistoryManager.getHistory();
     }
@@ -195,19 +197,25 @@ public class InMemoryTaskManager implements TaskManager {
     //найти что-то
     @Override
     public Task findTaskByID(int idForSearch) {
-        inMemoryHistoryManager.add(allTasks.get(idForSearch));
+        if (isTaskAddedByID(idForSearch)) {
+            inMemoryHistoryManager.add(allTasks.get(idForSearch));
+        }
         return allTasks.get(idForSearch);
     }
 
     @Override
     public Epic findEpicByID(int idForSearch) {
-        inMemoryHistoryManager.add(allEpics.get(idForSearch));
+        if (isEpicAddedByID(idForSearch)) {
+            inMemoryHistoryManager.add(allEpics.get(idForSearch));
+        }
         return allEpics.get(idForSearch);
     }
 
     @Override
     public Subtask findSubtaskByID(int idSubtask) {
-        inMemoryHistoryManager.add(allSubtasks.get(idSubtask));
+        if (isSubtaskAddedByID(idSubtask)) {
+            inMemoryHistoryManager.add(allSubtasks.get(idSubtask));
+        }
         return allSubtasks.get(idSubtask);
     }
 
@@ -235,8 +243,10 @@ public class InMemoryTaskManager implements TaskManager {
     //обновить что-то
     @Override
     public Task updateTask(Task task) {
-        inMemoryHistoryManager.add(task);
-        allTasks.put(task.getId(), task);
+        if (isTaskAddedByID(task.getId())) {
+            inMemoryHistoryManager.add(task);
+            allTasks.put(task.getId(), task);
+        }
         return task;
     }
 
@@ -245,7 +255,9 @@ public class InMemoryTaskManager implements TaskManager {
         Epic oldEpic = allEpics.get(epic.getId());
         oldEpic.setName(epic.getName());
         oldEpic.setDescription(epic.getDescription());
-        inMemoryHistoryManager.add(epic);
+        if (isEpicAddedByID(epic.getId())) {
+            inMemoryHistoryManager.add(epic);
+        }
         return oldEpic;
 
     }
@@ -257,7 +269,9 @@ public class InMemoryTaskManager implements TaskManager {
         oldSubtask.setDescription(subtask.getDescription());
         oldSubtask.setStatus(subtask.getStatus());
         checkProgressStatusOfEpic(subtask.getIdOfSubtaskEpic());
-        inMemoryHistoryManager.add(subtask);
+        if (isSubtaskAddedByID(subtask.getId())) {
+            inMemoryHistoryManager.add(subtask);
+        }
         return subtask;
     }
 

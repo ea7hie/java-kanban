@@ -1,4 +1,4 @@
-package commonTests;
+package managersTests.commonTests;
 
 import com.yandex.app.model.Epic;
 import com.yandex.app.model.Subtask;

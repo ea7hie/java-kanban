@@ -7,6 +7,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private Path fileForSaving;
@@ -19,6 +20,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this.fileForSaving = fileForSaving;
         this.defaultPath = fileForSaving;
         inMemoryTaskManager = (InMemoryTaskManager) Managers.getDefaultTaskManager();
+        inMemoryTaskManager.inMemoryHistoryManager.setFm(this);
     }
 
     public static FileBackedTaskManager loadFromFile(File file) {
@@ -86,6 +88,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return newSubtask;
     }
 
+    private String getIdsOfViewedTasks() {
+        String listIds = inMemoryTaskManager.getListOfHistory().stream()
+                .map(Task::getId)
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+        return "[" + listIds + "]";
+    }
+
     //очистка файла-хранилища
     public void clearFile() {
         try {
@@ -123,6 +133,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             for (Subtask curTask : allSubtasks.values()) {
                 writeNewStringInStorage.write(fromTaskToString(curTask) + "\n");
             }
+
+            writeNewStringInStorage.write(getIdsOfViewedTasks());
         } catch (IOException e) {
             throw new ManagerSaveException("Приносим свои извинения, вы не должны были видеть это!" +
                     "Произошла ошибка сохранения: новые данные не могут записаться...");
@@ -133,8 +145,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try (Reader reader = new FileReader(fileForSaving.toString());
              BufferedReader br = new BufferedReader(reader)) {
             String curTaskInString = br.readLine(); //чтобы проскочить первую строку "id,type,name,status,desc,epic\n"
+            String list = "";
             while (br.ready()) {
                 curTaskInString = br.readLine();
+
+                if (curTaskInString.startsWith("[")) {
+                    list = curTaskInString;
+                    break;
+                }
+
                 String type = curTaskInString.split(",")[1];
                 if (Tasks.valueOf(type) == Tasks.TASK) {
                     Task curTaskInTask = fromStringToTask(curTaskInString);
@@ -157,6 +176,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             for (Subtask subtask : allSubtasks.values()) {
                 allEpics.get(subtask.getIdOfSubtaskEpic()).saveNewSubtaskIDs(subtask.getId());
             }
+
+            inMemoryTaskManager.inMemoryHistoryManager.setFm(this);
+            if (list.isEmpty()) {
+                return;
+            }
+
+            String idsOfViewedTasks = list.substring(1, list.length() - 1);
+            for (String id : idsOfViewedTasks.split(",")) {
+                if (inMemoryTaskManager.isTaskAddedByID(Integer.parseInt(id))) {
+                    inMemoryTaskManager.inMemoryHistoryManager.recordFromFBM(allTasks.get(Integer.parseInt(id)));
+                } else if (inMemoryTaskManager.isEpicAddedByID(Integer.parseInt(id))) {
+                    inMemoryTaskManager.inMemoryHistoryManager.recordFromFBM(allEpics.get(Integer.parseInt(id)));
+                } else if (inMemoryTaskManager.isSubtaskAddedByID(Integer.parseInt(id))) {
+                    inMemoryTaskManager.inMemoryHistoryManager.recordFromFBM(allSubtasks.get(Integer.parseInt(id)));
+                }
+            }
         } catch (IOException e) {
             throw new ManagerSaveException("Приносим свои извинения, вы не должны были видеть это!" +
                     "Произошла ошибка обновления списка хранилища при загрузке из файла...");
@@ -173,6 +208,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
+    @Override
+    public String getPrioritizedTasks() {
+        return inMemoryTaskManager.getPrioritizedTasks();
+    }
+
     //автосохранение
     private void save() {
         clearFile();
@@ -180,6 +220,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     //методы с автосохранением
+    public void needSave() {
+        save();
+    }
 
     //удалить что-то
     @Override

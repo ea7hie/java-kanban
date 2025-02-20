@@ -120,7 +120,7 @@ public class Task {
     @Override
     public String toString() {
         return String.format("%S%S%SЗадача '%s', %sописание: '%s', %sid=%d, %sстатус прогресса: %s, %s" +
-                        "начало: %s, %sпродолжительность: %s мин, %sконец выполнения эпика: %s%s%s",
+                        "начало: %s, %sпродолжительность: %s мин, %sконец выполнения задачи: %s%s%s",
                 HEADER_OF_TASK, HEADER_OF_TASK, NEW_LINE, this.getName(), NEW_LINE, this.getDescription(), NEW_LINE,
                 this.getId(), NEW_LINE, this.getStatus(), NEW_LINE, this.getStartTime(), NEW_LINE, this.getDuration(),
                 NEW_LINE, this.getEndTime(), NEW_LINE, NEW_LINE);

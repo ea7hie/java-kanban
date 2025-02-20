@@ -1,3 +1,5 @@
+package managersTests;
+
 import com.yandex.app.model.Epic;
 import com.yandex.app.model.Progress;
 import com.yandex.app.model.Subtask;
